@@ -819,7 +819,20 @@ Eligibility must be derived from authoritative configuration state.
 
 ## 19. Case Selection
 
-For each round, the trainer shall randomly select one eligible observation.
+Case ordering shall be abstracted behind an ordering-strategy service.
+
+If there are `n` enabled eligible observations, the ordering service shall return an ordered list containing `n` observations.
+
+The trainer shall request and store one ordered list at a time (a bag), consume it sequentially, and request the next list only after the current list is exhausted.
+
+Version 1.0 shall use a shuffled-bag canonical strategy:
+
+* Return every currently eligible observation exactly once per bag.
+* Return the bag in randomized order.
+
+This guarantees even distribution within each bag while still providing random presentation order.
+
+The ordering-strategy abstraction must support deterministic testing by allowing the strategy to be mocked or substituted.
 
 Version 1.0 does not require:
 
@@ -827,9 +840,6 @@ Version 1.0 does not require:
 * Adaptive difficulty
 * Error-based weighting
 * Spaced repetition
-* Guaranteed even distribution
-
-Case selection shall nevertheless be isolated from presentation so that these strategies could later replace simple random selection.
 
 The cube display component must not participate in case selection.
 
@@ -959,7 +969,17 @@ Owns or exposes:
 
 ### Case Selector
 
-Determines eligible observations and chooses the next observation.
+Determines eligible observations, requests ordered bags from the ordering strategy, and chooses the next observation from the active bag.
+
+---
+
+### Case Ordering Strategy
+
+Owns the ordering algorithm for eligible observations.
+
+Version 1.0 canonical strategy is shuffled bag.
+
+The strategy must be replaceable so future versions can add alternative ordering approaches.
 
 ---
 
@@ -1223,6 +1243,10 @@ The logical sticker arrangement representing the active observation.
 
 Why a particular observation is eligible to appear.
 
+### Ordering Strategy
+
+How eligible observations are ordered and batched for presentation.
+
 ### Appearance
 
 How the current cube state is visually presented.
@@ -1235,6 +1259,7 @@ The conceptual flow is:
 
 `Training configuration`
 → `eligible observations`
+→ `ordered bag`
 → `selected observation`
 → `cube state`
 → `rendering`
@@ -1256,20 +1281,22 @@ A typical training session is:
 7. User optionally disables individual candidates within individual groups.
 8. User collapses configuration.
 9. Trainer configuration state determines the eligible observation pool.
-10. Case selector chooses an eligible observation.
-11. Trainer state activates the observation.
-12. Cube-state logic establishes the corresponding logical sticker state.
-13. Cube renderer reacts to updated cube state.
-14. User inspects the cube.
-15. User selects a PLL answer.
-16. Answer-evaluation logic checks the selection.
-17. Feedback state updates.
-18. Display components react to the result.
-19. If the answer was incorrect, the same observation remains active.
-20. If the answer was correct on the first attempt, first-try-correct increments.
-21. If the answer was correct after an incorrect attempt, the round completes without first-try credit.
-22. Another eligible observation is selected.
-23. Training continues.
+10. Case selector requests an ordered bag from the ordering strategy.
+11. The ordering strategy returns all currently eligible observations exactly once in randomized order.
+12. Trainer state stores the bag and activates its first observation.
+13. Cube-state logic establishes the corresponding logical sticker state.
+14. Cube renderer reacts to updated cube state.
+15. User inspects the cube.
+16. User selects a PLL answer.
+17. Answer-evaluation logic checks the selection.
+18. Feedback state updates.
+19. Display components react to the result.
+20. If the answer was incorrect, the same observation remains active.
+21. If the answer was correct on the first attempt, first-try-correct increments.
+22. If the answer was correct after an incorrect attempt, the round completes without first-try credit.
+23. The trainer advances to the next observation in the current bag.
+24. When the current bag is exhausted, the trainer requests the next ordered bag.
+25. Training continues.
 
 ---
 
@@ -1331,7 +1358,11 @@ Version 1.0 is complete when all of the following are true.
 
 * Only observations matching enabled groups and enabled group candidates may appear.
 * Eligible observations are derived from configuration state.
-* Case randomization occurs outside display components.
+* Case ordering is abstracted behind an ordering-strategy service.
+* If `n` eligible observations exist, the strategy returns `n` ordered observations per bag.
+* Version 1.0 uses a shuffled-bag strategy that returns each eligible observation exactly once per bag, in random order.
+* The trainer consumes the active bag completely before requesting the next bag.
+* The ordering strategy can be mocked or substituted for deterministic testing.
 * The application handles an empty eligible pool without error.
 
 ### Identification
