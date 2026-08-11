@@ -43,6 +43,7 @@ Version 1.0 shall:
 * Generate cases only from the currently enabled recognition-group/candidate configuration.
 * Keep authoritative application and cube state outside display components.
 * Represent the known PLL recognition catalog explicitly as application data.
+* Keep domain logic color-agnostic by using side-color indices instead of concrete colors.
 
 The application should be designed so that later releases can support additional trainer modes, cube customization, persistence, and timing without requiring a fundamental redesign.
 
@@ -225,6 +226,10 @@ A sticker's logical color or identity shall not depend on:
 
 This distinction is required so that later appearance customization can change how a cube looks without changing what cube state it represents.
 
+Domain and state logic must not depend on named colors (for example, red/green/orange/blue) when determining case validity, recognition-group membership, or observation identity.
+
+Domain logic shall use side-color indices and index relationships. Rendering maps indices to concrete display colors.
+
 ---
 
 ## 7. Domain Model
@@ -373,9 +378,62 @@ The authoritative cube state shall be maintained outside display components.
 
 ---
 
+### 7.7 Side-Color Index Model
+
+Version 1.0 domain logic shall represent side colors by index, not by concrete color name.
+
+The four side indices are:
+
+* `1`
+* `2`
+* `3`
+* `4`
+
+They form a deterministic repeating sequence:
+
+`1 → 2 → 3 → 4 → 1`
+
+For any observation presentation, if the left visible side index is `i`, the right visible side index is the next value in the sequence (wrapping at the end).
+
+This keeps recognition and observation logic color-agnostic while preserving deterministic side adjacency.
+
+---
+
+### 7.8 Observation Color Layout Data
+
+Each valid `(left pattern, right pattern, permutation)` triple shall map to explicit side-index sticker layout data sufficient to color the visible stickers deterministically.
+
+At minimum, this layout data shall define ordered index triples for:
+
+* The three visible stickers on the left face
+* The three visible stickers on the right face
+
+For example, a specific triple may map to:
+
+* Left face indices: `(1, 3, 1)`
+* Right face indices: `(2, 4, 2)`
+
+This mapping is canonical domain data and must not be inferred by presentation components.
+
+---
+
+### 7.9 Color-Anchor Strategy
+
+A color-anchor strategy abstraction shall determine the side index used for the current left visible face.
+
+Given the left index, the right index is derived deterministically as the next sequence value.
+
+For any valid structural pattern triple, there are four valid rendered index combinations corresponding to left anchors `1`, `2`, `3`, and `4`.
+
+The strategy abstraction allows deterministic testing and future strategy variation while preserving canonical adjacency rules.
+
+---
+
 ## 8. Canonical Cube Color Model
 
-Version 1.0 shall use a fixed standard cube color arrangement.
+Version 1.0 rendering shall use a fixed standard cube color arrangement.
+
+Domain logic remains index-based. The renderer owns index-to-color mapping.
 
 The opposite color pairs are:
 
@@ -397,6 +455,8 @@ Therefore, the four valid adjacent side pairs around the cube are:
 * Blue / Red
 
 The logical color model shall exist independently from visual styling.
+
+Renderer mapping for version 1.0 shall map side indices to these canonical side colors in sequence order.
 
 ---
 
@@ -528,6 +588,8 @@ This table is canonical application data for version 1.0.
 Recognition-group candidate lists may be stored directly or derived from this observation dataset.
 
 If both representations are stored, automated validation should ensure that they remain equivalent.
+
+In addition, each valid `(left pattern, right pattern, permutation)` triple shall map to canonical side-index sticker layouts as described in section 7.8.
 
 ---
 
@@ -973,6 +1035,24 @@ Determines eligible observations, requests ordered bags from the ordering strate
 
 ---
 
+### Color Anchor Strategy
+
+Determines the left visible side index for presentation.
+
+The right visible side index is derived as the next value in the deterministic index sequence.
+
+The strategy is replaceable to support deterministic tests and future behavior extensions.
+
+---
+
+### Color Layout Catalog
+
+Owns canonical triple-to-side-index sticker layouts for valid `(left pattern, right pattern, permutation)` combinations.
+
+Presentation components consume resolved layouts; they do not infer or synthesize them.
+
+---
+
 ### Case Ordering Strategy
 
 Owns the ordering algorithm for eligible observations.
@@ -1261,6 +1341,8 @@ The conceptual flow is:
 → `eligible observations`
 → `ordered bag`
 → `selected observation`
+→ `color anchor`
+→ `resolved side-index layout`
 → `cube state`
 → `rendering`
 
@@ -1284,19 +1366,22 @@ A typical training session is:
 10. Case selector requests an ordered bag from the ordering strategy.
 11. The ordering strategy returns all currently eligible observations exactly once in randomized order.
 12. Trainer state stores the bag and activates its first observation.
-13. Cube-state logic establishes the corresponding logical sticker state.
-14. Cube renderer reacts to updated cube state.
-15. User inspects the cube.
-16. User selects a PLL answer.
-17. Answer-evaluation logic checks the selection.
-18. Feedback state updates.
-19. Display components react to the result.
-20. If the answer was incorrect, the same observation remains active.
-21. If the answer was correct on the first attempt, first-try-correct increments.
-22. If the answer was correct after an incorrect attempt, the round completes without first-try credit.
-23. The trainer advances to the next observation in the current bag.
-24. When the current bag is exhausted, the trainer requests the next ordered bag.
-25. Training continues.
+13. Color-anchor strategy selects the left side index.
+14. The right side index is derived as the next sequence value.
+15. Triple-to-layout data resolves visible side-index sticker layouts.
+16. Cube-state logic establishes the corresponding logical sticker state.
+17. Cube renderer maps indices to concrete colors and renders the cube.
+18. User inspects the cube.
+19. User selects a PLL answer.
+20. Answer-evaluation logic checks the selection.
+21. Feedback state updates.
+22. Display components react to the result.
+23. If the answer was incorrect, the same observation remains active.
+24. If the answer was correct on the first attempt, first-try-correct increments.
+25. If the answer was correct after an incorrect attempt, the round completes without first-try credit.
+26. The trainer advances to the next observation in the current bag.
+27. When the current bag is exhausted, the trainer requests the next ordered bag.
+28. Training continues.
 
 ---
 
@@ -1319,6 +1404,7 @@ Version 1.0 is complete when all of the following are true.
 * All 24 canonical recognition groups from this document exist in application data.
 * Candidate lists match the canonical recognition-group table.
 * All PLL-pattern observations from this document exist in application data.
+* Valid `(left pattern, right pattern, permutation)` triples map to canonical side-index sticker layouts.
 * Recognition data is not duplicated as special-case UI logic.
 * Recognition-group keys preserve ordered left/right semantics.
 
@@ -1329,6 +1415,7 @@ Version 1.0 is complete when all of the following are true.
 * The cube renderer does not execute trainer case-selection logic.
 * The cube renderer does not apply PLL algorithms as part of presentation.
 * The cube renderer updates when authoritative cube state changes.
+* Domain/state logic remains color-agnostic and uses side-color indices.
 * Logical cube state is independent from visual styling.
 
 ### Cube Display
@@ -1336,6 +1423,7 @@ Version 1.0 is complete when all of the following are true.
 * The application draws an orthographic cube representation.
 * Yellow is displayed on top.
 * White is opposite yellow.
+* The renderer maps side indices to canonical side colors.
 * Side colors follow the canonical red → green → orange → blue order.
 * The top and two adjacent sides are displayed.
 * The rendered cube accurately represents the active observation.
@@ -1364,6 +1452,13 @@ Version 1.0 is complete when all of the following are true.
 * The trainer consumes the active bag completely before requesting the next bag.
 * The ordering strategy can be mocked or substituted for deterministic testing.
 * The application handles an empty eligible pool without error.
+
+### Color Strategy and Layout
+
+* A color-anchor strategy abstraction determines the left side index.
+* The right side index is derived as the next value in the deterministic repeating sequence.
+* For any valid structural triple, the system can render four valid index-anchored color combinations.
+* Triple-to-layout mapping data is explicit and consumed from domain/state data, not inferred by rendering logic.
 
 ### Identification
 
