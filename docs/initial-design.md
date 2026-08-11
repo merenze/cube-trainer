@@ -411,6 +411,8 @@ This keeps recognition and observation logic color-agnostic while preserving det
 
 Each valid `(left pattern, right pattern, permutation)` triple shall map to explicit side-index sticker layout data sufficient to color the visible stickers deterministically.
 
+Canonical storage for this mapping uses normalized side-index layouts where `Left_0` is always `0`.
+
 At minimum, this layout data shall define ordered index triples for:
 
 * The three visible stickers on the left face
@@ -422,6 +424,10 @@ For example, a specific triple may map to:
 * Right face indices: `(2, 4, 2)`
 
 This mapping is canonical domain data and must not be inferred by presentation components.
+
+Given a normalized mapping with `Left_0 = 0`, additional valid color variants are derived by adding anchor offset `a` modulo 4 to each side index.
+
+This allows canonical storage of one normalized mapping per recorded case-row while generating other anchor variants deterministically.
 
 ---
 
@@ -600,6 +606,112 @@ Recognition-group candidate lists may be stored directly or derived from this ob
 If both representations are stored, automated validation should ensure that they remain equivalent.
 
 In addition, each valid `(left pattern, right pattern, permutation)` triple shall map to canonical side-index sticker layouts as described in section 7.8.
+
+### 10.1 Canonical Normalized Color Layout Dataset
+
+This dataset is the canonical source for normalized visible-side colors.
+
+Composite key:
+
+* `Permutation`
+* `Left pattern`
+* `Right pattern`
+
+Normalized value shape:
+
+* `left = (Left_0, Left_1, Left_2)`
+* `right = (Right_0, Right_1, Right_2)`
+
+Normalization rule:
+
+* `Left_0` is always `0`.
+
+Rotation rule:
+
+* For anchor offset `a` in `{0,1,2,3}`, each stored side index `c` rotates to `(c + a) mod 4`.
+
+Inversion rule:
+
+* Any observed six-color value can be rotated so `Left_0 = 0`, then matched against this canonical dataset.
+
+Data provenance note:
+
+* This dataset was extracted from diagram sources and spot-checked on a physical cube for selected rows.
+* It should be treated as candidate-canonical for implementation, with defect capture and correction handled through QA.
+
+| Perm | Left Pattern | Right Pattern | Left_0 | Left_1 | Left_2 | Right_0 | Right_1 | Right_2 |
+| ---- | ------------ | ------------- | -----: | -----: | -----: | ------: | ------: | ------: |
+| Ub   | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       0 |       1 |
+| Ub   | Headlights   | Headlights    |      0 |      3 |      0 |       1 |       0 |       1 |
+| Ub   | Headlights   | Solved        |      0 |      3 |      0 |       1 |       1 |       1 |
+| Ub   | Bar outside  | Headlights    |      0 |      0 |      0 |       1 |       3 |       1 |
+| Ua   | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       2 |       1 |
+| Ua   | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       3 |       1 |
+| Ua   | Headlights   | Solved        |      0 |      2 |      0 |       1 |       1 |       1 |
+| Ua   | Bar outside  | Headlights    |      0 |      0 |      0 |       1 |       2 |       1 |
+| Z    | Headlights   | Headlights    |      0 |      3 |      0 |       1 |       2 |       1 |
+| Z    | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       0 |       1 |
+| H    | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       3 |       1 |
+| Aa   | Bar inside   | Bar inside    |      0 |      1 |      1 |       2 |       2 |       0 |
+| Aa   | Bar outside  | None          |      0 |      0 |      2 |       3 |       1 |       0 |
+| Aa   | None         | Headlights    |      0 |      2 |      1 |       2 |       3 |       2 |
+| Aa   | None         | Bar outside   |      0 |      1 |      0 |       1 |       2 |       2 |
+| Ab   | Bar inside   | Bar inside    |      0 |      2 |      2 |       3 |       3 |       0 |
+| Ab   | Bar outside  | Headlights    |      0 |      0 |      1 |       2 |       1 |       2 |
+| Ab   | None         | None          |      0 |      3 |      0 |       1 |       0 |       2 |
+| Ab   | None         | Bar outside   |      0 |      3 |      1 |       2 |       0 |       0 |
+| E    | None         | None          |      0 |      3 |      2 |       3 |       0 |       1 |
+| E    | None         | None          |      0 |      1 |      2 |       3 |       2 |       1 |
+| Ra   | Headlights   | Bar inside    |      0 |      3 |      0 |       1 |       1 |       2 |
+| Ra   | Bar outside  | Headlights    |      0 |      0 |      1 |       2 |       1 |       0 |
+| Ra   | None         | None          |      0 |      3 |      2 |       3 |       1 |       0 |
+| Ra   | None         | Bar outside   |      0 |      2 |      1 |       2 |       1 |       2 |
+| Rb   | Bar inside   | None          |      0 |      1 |      1 |       2 |       3 |       2 |
+| Rb   | None         | None          |      0 |      1 |      0 |       1 |       0 |       2 |
+| Rb   | None         | Bar outside   |      0 |      3 |      1 |       2 |       1 |       0 |
+| Rb   | None         | Bar outside   |      0 |      3 |      2 |       3 |       0 |       0 |
+| Ja   | Bar outside  | Solved        |      0 |      0 |      1 |       2 |       2 |       2 |
+| Ja   | Solved       | Bar inside    |      0 |      0 |      0 |       1 |       1 |       2 |
+| Ja   | Bar outside  | Bar inside    |      0 |      0 |      1 |       2 |       2 |       0 |
+| Ja   | Bar outside  | Bar inside    |      0 |      0 |      2 |       3 |       3 |       0 |
+| Jb   | Solved       | Bar outside   |      0 |      0 |      0 |       1 |       2 |       2 |
+| Jb   | Bar inside   | Bar outside   |      0 |      1 |      1 |       2 |       0 |       0 |
+| Jb   | Bar inside   | Bar outside   |      0 |      2 |      2 |       3 |       0 |       0 |
+| Jb   | Bar inside   | Solved        |      0 |      1 |      1 |       2 |       2 |       2 |
+| T    | Headlights   | Bar inside    |      0 |      2 |      0 |       1 |       1 |       2 |
+| T    | Bar outside  | None          |      0 |      0 |      1 |       2 |       3 |       0 |
+| T    | None         | Bar outside   |      0 |      1 |      2 |       3 |       0 |       0 |
+| T    | Bar inside   | Headlights    |      0 |      1 |      1 |       2 |       0 |       2 |
+| F    | Solved       | None          |      0 |      0 |      0 |       1 |       3 |       2 |
+| F    | None         | Headlights    |      0 |      2 |      1 |       2 |       1 |       0 |
+| F    | None         | None          |      0 |      3 |      2 |       3 |       2 |       0 |
+| F    | None         | Solved        |      0 |      3 |      1 |       2 |       2 |       2 |
+| V    | Bar inside   | Bar inside    |      0 |      2 |      2 |       3 |       3 |       1 |
+| V    | Bar outside  | None          |      0 |      0 |      2 |       3 |       2 |       1 |
+| V    | None         | None          |      0 |      3 |      2 |       3 |       2 |       1 |
+| V    | None         | Bar outside   |      0 |      3 |      2 |       3 |       1 |       1 |
+| Y    | None         | Bar inside    |      0 |      1 |      2 |       3 |       3 |       1 |
+| Y    | Bar outside  | Bar outside   |      0 |      0 |      2 |       3 |       1 |       1 |
+| Y    | Bar inside   | None          |      0 |      2 |      2 |       3 |       0 |       1 |
+| Y    | None         | None          |      0 |      1 |      2 |       3 |       0 |       1 |
+| Na   | Bar inside   | Solved        |      0 |      2 |      2 |       3 |       1 |       1 |
+| Nb   | Bar outside  | Headlights    |      0 |      0 |      2 |       3 |       3 |       1 |
+| Ga   | Headlights   | Bar outside   |      0 |      3 |      0 |       1 |       2 |       2 |
+| Ga   | Bar inside   | None          |      0 |      1 |      1 |       2 |       3 |       0 |
+| Ga   | None         | None          |      0 |      1 |      2 |       3 |       2 |       0 |
+| Ga   | None         | None          |      0 |      3 |      1 |       2 |       1 |       2 |
+| Gb   | None         | Bar outside   |      0 |      2 |      1 |       2 |       0 |       0 |
+| Gb   | Bar inside   | None          |      0 |      2 |      2 |       3 |       1 |       0 |
+| Gb   | None         | Headlights    |      0 |      2 |      1 |       2 |       0 |       2 |
+| Gb   | Headlights   | None          |      0 |      2 |      0 |       1 |       3 |       2 |
+| Gc   | Headlights   | None          |      0 |      1 |      0 |       1 |       3 |       2 |
+| Gc   | None         | None          |      0 |      2 |      1 |       2 |       3 |       0 |
+| Gc   | None         | Bar inside    |      0 |      1 |      2 |       3 |       3 |       0 |
+| Gc   | None         | Bar inside    |      0 |      0 |      1 |       2 |       3 |       2 |
+| Gd   | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       0 |       2 |
+| Gd   | None         | Bar outside   |      0 |      3 |      1 |       2 |       2 |       0 |
+| Gd   | Bar outside  | Bar outside   |      0 |      0 |      2 |       3 |       2 |       0 |
+| Gd   | None         | Headlights    |      0 |      3 |      1 |       2 |       0 |       2 |
 
 ---
 
