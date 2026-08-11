@@ -393,6 +393,14 @@ They form a deterministic repeating sequence:
 
 `1 → 2 → 3 → 4 → 1`
 
+The active color assignment is represented by a cursor tracking which side color is currently assigned to logical position `1`.
+
+Given that cursor value:
+
+* Position `2` is derived as the next value in the sequence.
+* Position `3` is derived as the second next value in the sequence.
+* Position `4` is derived as the third next value in the sequence.
+
 For any observation presentation, if the left visible side index is `i`, the right visible side index is the next value in the sequence (wrapping at the end).
 
 This keeps recognition and observation logic color-agnostic while preserving deterministic side adjacency.
@@ -422,6 +430,8 @@ This mapping is canonical domain data and must not be inferred by presentation c
 A color-anchor strategy abstraction shall determine the side index used for the current left visible face.
 
 Given the left index, the right index is derived deterministically as the next sequence value.
+
+Equivalent representation is permitted via the position-`1` cursor model in section 7.7, where remaining positions are derived by fixed sequence offsets.
 
 For any valid structural pattern triple, there are four valid rendered index combinations corresponding to left anchors `1`, `2`, `3`, and `4`.
 
@@ -1039,6 +1049,8 @@ Determines eligible observations, requests ordered bags from the ordering strate
 
 Determines the left visible side index for presentation.
 
+The strategy may be implemented as a cursor over logical position `1`; positions `2` through `4` are derived by deterministic sequence offsets.
+
 The right visible side index is derived as the next value in the deterministic index sequence.
 
 The strategy is replaceable to support deterministic tests and future behavior extensions.
@@ -1456,6 +1468,7 @@ Version 1.0 is complete when all of the following are true.
 ### Color Strategy and Layout
 
 * A color-anchor strategy abstraction determines the left side index.
+* The strategy may be represented as a cursor for logical position `1`, with positions `2` to `4` derived deterministically.
 * The right side index is derived as the next value in the deterministic repeating sequence.
 * For any valid structural triple, the system can render four valid index-anchored color combinations.
 * Triple-to-layout mapping data is explicit and consumed from domain/state data, not inferred by rendering logic.
