@@ -56,4 +56,25 @@ describe('observation color catalog', () => {
   it('should expose a non-empty canonical mapping collection', () => {
     expect(CANONICAL_OBSERVATION_COLOR_MAPPINGS.length).toBeGreaterThan(0);
   });
+
+  it('should include the full canonical mapping row set from the design dataset', () => {
+    expect(CANONICAL_OBSERVATION_COLOR_MAPPINGS.length).toBe(71);
+  });
+
+  it('should keep all canonical rows normalized with Left_0 equal to zero', () => {
+    expect(
+      CANONICAL_OBSERVATION_COLOR_MAPPINGS.every(
+        (mapping) => mapping.layout.left[0] === 0,
+      ),
+    ).toBe(true);
+  });
+
+  it('should keep all canonical side-color indices in the 0..3 range', () => {
+    const allIndices = CANONICAL_OBSERVATION_COLOR_MAPPINGS.flatMap((mapping) => [
+      ...mapping.layout.left,
+      ...mapping.layout.right,
+    ]);
+
+    expect(allIndices.every((index) => index >= 0 && index <= 3)).toBe(true);
+  });
 });
