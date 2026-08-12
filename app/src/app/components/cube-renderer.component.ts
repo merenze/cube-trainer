@@ -3,59 +3,67 @@ import { CubeStateService } from '../services/cube-state.service';
 import { AppearanceService } from '../services/appearance.service';
 import { type SideColorIndex } from '../domain/observation-color-layout';
 
-// Presentation geometry for the orthographic cube view.
-// viewBox: 0 0 270 240
-// Top face: 3x3 grid of 60x60 squares arranged in a 3x3 layout at y=0
-// Left face: 3 stickers (60x60 each) arranged horizontally below-left
-// Right face: 3 stickers (60x60 each) arranged horizontally below-right
-// Layout: top face centered at x=45..225, y=10..190; side faces below
+// Isometric cube geometry — see docs/initial-design.md section 12.2.
+// Top face diamond: TOP=(165,0), RIGHT=(330,129), BOTTOM=(165,258), LEFT=(0,129)
+// Left visible face hangs from TOP to LEFT edge of diamond.
+// Right visible face hangs from RIGHT to BOTTOM edge of diamond.
+// Per-sticker vectors: step-right=(+55,+43), step-forward=(-55,+43), step-down=(0,+70).
 
-const S = 56; // sticker size
-const G = 4;  // gap between stickers
-const UNIT = S + G; // 60px per cell
+const A = 55;    // horizontal isometric step per sticker
+const B = 43;    // vertical isometric step per sticker (top face)
+const SH = 70;   // sticker height on side faces
+const OX = 165;  // x-origin: top corner of the top-face diamond
 
-// Top face: 9 stickers in a 3x3 grid, top-left origin at (15, 10)
-const TOP_X = 15;
-const TOP_Y = 10;
+function pts(corners: [number, number][]): string {
+  return corners.map(([x, y]) => `${x},${y}`).join(' ');
+}
 
-// Side faces: one row of 3 stickers each, below the bottom row of the top face
-const SIDE_Y = TOP_Y + 3 * UNIT + G;
+function topPts(r: number, c: number): string {
+  return pts([
+    [OX + A * (c - r),     B * (c + r)    ],
+    [OX + A * (c - r + 1), B * (c + r + 1)],
+    [OX + A * (c - r),     B * (c + r + 2)],
+    [OX + A * (c - r - 1), B * (c + r + 1)],
+  ]);
+}
 
-// Left face starts at same x as top face
-const LEFT_X = TOP_X;
+function leftPts(lr: number, lc: number): string {
+  return pts([
+    [OX - A * lc,       B * lc       + lr * SH       ],
+    [OX - A * (lc + 1), B * (lc + 1) + lr * SH       ],
+    [OX - A * (lc + 1), B * (lc + 1) + (lr + 1) * SH ],
+    [OX - A * lc,       B * lc       + (lr + 1) * SH ],
+  ]);
+}
 
-// Right face starts aligned to the right of the top face
-const RIGHT_X = TOP_X + 3 * UNIT + G;
-
-function rect(x: number, y: number): string {
-  return `${x},${y} ${x + S},${y} ${x + S},${y + S} ${x},${y + S}`;
+function rightPts(lr: number, rc: number): string {
+  return pts([
+    [OX + 3 * A - A * rc,       3 * B + B * rc       + lr * SH       ],
+    [OX + 3 * A - A * (rc + 1), 3 * B + B * (rc + 1) + lr * SH       ],
+    [OX + 3 * A - A * (rc + 1), 3 * B + B * (rc + 1) + (lr + 1) * SH ],
+    [OX + 3 * A - A * rc,       3 * B + B * rc       + (lr + 1) * SH ],
+  ]);
 }
 
 interface StickerDef {
   face: 'top' | 'left' | 'right';
-  index: number;
+  row: number;  // side faces: 0=U-layer PLL stickers, 1-2=solved layers
+  col: number;  // side faces: 0=outer (away from other face), 2=inner (adjacent)
   points: string;
 }
 
-const TOP_STICKERS: StickerDef[] = Array.from({ length: 9 }, (_, i) => ({
-  face: 'top' as const,
-  index: i,
-  points: rect(TOP_X + (i % 3) * UNIT, TOP_Y + Math.floor(i / 3) * UNIT),
-}));
-
-const LEFT_STICKERS: StickerDef[] = Array.from({ length: 3 }, (_, i) => ({
-  face: 'left' as const,
-  index: i,
-  points: rect(LEFT_X + i * UNIT, SIDE_Y),
-}));
-
-const RIGHT_STICKERS: StickerDef[] = Array.from({ length: 3 }, (_, i) => ({
-  face: 'right' as const,
-  index: i,
-  points: rect(RIGHT_X + i * UNIT, SIDE_Y),
-}));
-
-const ALL_STICKERS: StickerDef[] = [...TOP_STICKERS, ...LEFT_STICKERS, ...RIGHT_STICKERS];
+// Draw order: left -> right -> top (top last so it covers the side-face junctions)
+const ALL_STICKERS: StickerDef[] = [
+  ...Array.from({ length: 9 }, (_, i): StickerDef => ({
+    face: 'left', row: Math.floor(i / 3), col: i % 3, points: leftPts(Math.floor(i / 3), i % 3),
+  })),
+  ...Array.from({ length: 9 }, (_, i): StickerDef => ({
+    face: 'right', row: Math.floor(i / 3), col: i % 3, points: rightPts(Math.floor(i / 3), i % 3),
+  })),
+  ...Array.from({ length: 9 }, (_, i): StickerDef => ({
+    face: 'top', row: Math.floor(i / 3), col: i % 3, points: topPts(Math.floor(i / 3), i % 3),
+  })),
+];
 
 @Component({
   selector: 'app-cube-renderer',
@@ -63,16 +71,18 @@ const ALL_STICKERS: StickerDef[] = [...TOP_STICKERS, ...LEFT_STICKERS, ...RIGHT_
   template: `
     @if (displayState()) {
       <svg
-        viewBox="0 0 270 240"
+        viewBox="-5 -5 340 480"
         xmlns="http://www.w3.org/2000/svg"
         style="width:100%;height:auto;display:block">
-        @for (sticker of stickers; track sticker.face + '-' + sticker.index) {
+        @for (sticker of stickers; track sticker.face + '-' + sticker.row + '-' + sticker.col) {
           <polygon
             [attr.data-face]="sticker.face"
-            [attr.data-sticker]="sticker.face + '-' + sticker.index"
+            [attr.data-sticker]="sticker.face + '-' + sticker.row + '-' + sticker.col"
+            [attr.data-sticker-row]="sticker.row"
+            [attr.data-sticker-col]="sticker.col"
             [attr.points]="sticker.points"
             [attr.fill]="fillFor(sticker)"
-            stroke="#333333"
+            stroke="#1a1a1a"
             stroke-width="2"
           />
         }
@@ -95,7 +105,15 @@ export class CubeRendererComponent {
     if (!state) {
       return this.appearanceService.topColor;
     }
-    const face = sticker.face === 'left' ? state.leftFace : state.rightFace;
-    return this.appearanceService.sideIndexToColor(face[sticker.index] as SideColorIndex);
+    if (sticker.row === 0) {
+      // U-layer row: PLL recognition stickers from display state
+      const face = sticker.face === 'left' ? state.leftFace : state.rightFace;
+      return this.appearanceService.sideIndexToColor(face[sticker.col] as SideColorIndex);
+    }
+    // Bottom two rows: solved layers with randomly chosen sequential color pair
+    const base: SideColorIndex = sticker.face === 'left'
+      ? state.solvedBase
+      : ((state.solvedBase + 1) % 4) as SideColorIndex;
+    return this.appearanceService.sideIndexToColor(base);
   }
 }

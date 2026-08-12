@@ -7,15 +7,13 @@ import { AppearanceService } from '../services/appearance.service';
 class StubCubeStateService {
   private readonly _displayState = signal<CubeDisplayState | null>(null);
   readonly displayState = this._displayState.asReadonly();
-
-  setState(state: CubeDisplayState | null): void {
-    this._displayState.set(state);
-  }
+  setState(state: CubeDisplayState | null): void { this._displayState.set(state); }
 }
 
 const KNOWN_STATE: CubeDisplayState = {
   leftFace: [0, 1, 2],
   rightFace: [3, 0, 1],
+  solvedBase: 2,
 };
 
 describe('CubeRendererComponent', () => {
@@ -25,143 +23,113 @@ describe('CubeRendererComponent', () => {
 
   beforeEach(async () => {
     stubCubeState = new StubCubeStateService();
-
     await TestBed.configureTestingModule({
       imports: [CubeRendererComponent],
-      providers: [
-        AppearanceService,
-        { provide: CubeStateService, useValue: stubCubeState },
-      ],
+      providers: [AppearanceService, { provide: CubeStateService, useValue: stubCubeState }],
     }).compileComponents();
-
     fixture = TestBed.createComponent(CubeRendererComponent);
     appearance = TestBed.inject(AppearanceService);
   });
 
-  it('should be created', () => {
-    expect(fixture.componentInstance).toBeTruthy();
-  });
+  it('should be created', () => { expect(fixture.componentInstance).toBeTruthy(); });
 
   it('should render an SVG element', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const svg = fixture.nativeElement.querySelector('svg');
-    expect(svg).not.toBeNull();
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('svg')).not.toBeNull();
   });
 
   it('should not use a canvas element', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const canvas = fixture.nativeElement.querySelector('canvas');
-    expect(canvas).toBeNull();
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('canvas')).toBeNull();
   });
 
-  it('should render exactly 15 polygon elements (9 top + 3 left + 3 right)', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const polygons = fixture.nativeElement.querySelectorAll('polygon');
-    expect(polygons.length).toBe(15);
+  it('should render exactly 27 polygon elements (9 top + 9 left + 9 right)', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelectorAll('polygon').length).toBe(27);
   });
 
   it('should render exactly 9 top-face polygons', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const topPolygons = fixture.nativeElement.querySelectorAll('[data-face="top"]');
-    expect(topPolygons.length).toBe(9);
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelectorAll('[data-face="top"]').length).toBe(9);
   });
 
-  it('should render exactly 3 left-face polygons', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const leftPolygons = fixture.nativeElement.querySelectorAll('[data-face="left"]');
-    expect(leftPolygons.length).toBe(3);
+  it('should render exactly 9 left-face polygons', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelectorAll('[data-face="left"]').length).toBe(9);
   });
 
-  it('should render exactly 3 right-face polygons', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const rightPolygons = fixture.nativeElement.querySelectorAll('[data-face="right"]');
-    expect(rightPolygons.length).toBe(3);
+  it('should render exactly 9 right-face polygons', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelectorAll('[data-face="right"]').length).toBe(9);
   });
 
-  it('should fill all top-face polygons with the top color', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const topPolygons = fixture.nativeElement.querySelectorAll('[data-face="top"]');
-    for (const polygon of topPolygons) {
-      expect(polygon.getAttribute('fill')).toBe(appearance.topColor);
+  it('should fill all top-face polygons with topColor', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    for (const p of fixture.nativeElement.querySelectorAll('[data-face="top"]')) {
+      expect(p.getAttribute('fill')).toBe(appearance.topColor);
     }
   });
 
-  it('should fill left-face polygons from the leftFace logical indices', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const leftPolygons = fixture.nativeElement.querySelectorAll('[data-face="left"]');
-    expect(leftPolygons[0].getAttribute('fill')).toBe(appearance.sideIndexToColor(0));
-    expect(leftPolygons[1].getAttribute('fill')).toBe(appearance.sideIndexToColor(1));
-    expect(leftPolygons[2].getAttribute('fill')).toBe(appearance.sideIndexToColor(2));
+  it('should fill left U-layer stickers from leftFace logical indices', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    for (let col = 0; col < 3; col++) {
+      const p = fixture.nativeElement.querySelector(`[data-sticker="left-0-${col}"]`);
+      expect(p.getAttribute('fill')).toBe(appearance.sideIndexToColor(KNOWN_STATE.leftFace[col]));
+    }
   });
 
-  it('should fill right-face polygons from the rightFace logical indices', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
+  it('should fill right U-layer stickers from rightFace logical indices', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    for (let col = 0; col < 3; col++) {
+      const p = fixture.nativeElement.querySelector(`[data-sticker="right-0-${col}"]`);
+      expect(p.getAttribute('fill')).toBe(appearance.sideIndexToColor(KNOWN_STATE.rightFace[col]));
+    }
+  });
 
-    const rightPolygons = fixture.nativeElement.querySelectorAll('[data-face="right"]');
-    expect(rightPolygons[0].getAttribute('fill')).toBe(appearance.sideIndexToColor(3));
-    expect(rightPolygons[1].getAttribute('fill')).toBe(appearance.sideIndexToColor(0));
-    expect(rightPolygons[2].getAttribute('fill')).toBe(appearance.sideIndexToColor(1));
+  it('should fill left solved rows with solvedBase color', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    const expected = appearance.sideIndexToColor(2);
+    for (let row = 1; row <= 2; row++) {
+      for (let col = 0; col < 3; col++) {
+        const p = fixture.nativeElement.querySelector(`[data-sticker="left-${row}-${col}"]`);
+        expect(p.getAttribute('fill')).toBe(expected);
+      }
+    }
+  });
+
+  it('should fill right solved rows with (solvedBase+1)%4 color', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    const expected = appearance.sideIndexToColor(3);
+    for (let row = 1; row <= 2; row++) {
+      for (let col = 0; col < 3; col++) {
+        const p = fixture.nativeElement.querySelector(`[data-sticker="right-${row}-${col}"]`);
+        expect(p.getAttribute('fill')).toBe(expected);
+      }
+    }
   });
 
   it('should update polygon fills when display state changes', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const leftPolygons = fixture.nativeElement.querySelectorAll('[data-face="left"]');
-    const initialFill = leftPolygons[0].getAttribute('fill');
-
-    stubCubeState.setState({ leftFace: [3, 3, 3], rightFace: [0, 0, 0] });
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(leftPolygons[0].getAttribute('fill')).toBe(appearance.sideIndexToColor(3));
-    expect(leftPolygons[0].getAttribute('fill')).not.toBe(initialFill);
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    const p = fixture.nativeElement.querySelector('[data-sticker="left-0-0"]');
+    const before = p.getAttribute('fill');
+    stubCubeState.setState({ leftFace: [3, 3, 3], rightFace: [0, 0, 0], solvedBase: 1 });
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(p.getAttribute('fill')).not.toBe(before);
+    expect(p.getAttribute('fill')).toBe(appearance.sideIndexToColor(3));
   });
 
   it('should hide the cube when display state is null', async () => {
-    stubCubeState.setState(null);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const polygons = fixture.nativeElement.querySelectorAll('polygon');
-    expect(polygons.length).toBe(0);
+    stubCubeState.setState(null); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelectorAll('polygon').length).toBe(0);
   });
 
   it('should use data-sticker attributes for individual sticker identity', async () => {
-    stubCubeState.setState(KNOWN_STATE);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(fixture.nativeElement.querySelector('[data-sticker="top-0"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('[data-sticker="left-0"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('[data-sticker="right-0"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('[data-sticker="top-8"]')).not.toBeNull();
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('[data-sticker="top-0-0"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-sticker="left-0-0"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-sticker="right-0-0"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-sticker="top-2-2"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-sticker="left-2-2"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-sticker="right-2-2"]')).not.toBeNull();
   });
 });

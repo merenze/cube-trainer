@@ -80,4 +80,11 @@ describe('CubeStateService', () => {
 
     expect(service.displayState()!.rightFace.length).toBe(3);
   });
+
+  it('should include a solvedBase value in range 0-3', () => {
+    stub.setLayout({ left: [0, 1, 2] as const, right: [3, 0, 1] as const });
+
+    const base = service.displayState()!.solvedBase;
+    expect([0, 1, 2, 3]).toContain(base);
+  });
 });

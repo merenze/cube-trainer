@@ -5,6 +5,8 @@ import { type SideColorIndex } from '../domain/observation-color-layout';
 export type CubeDisplayState = {
   leftFace: readonly [SideColorIndex, SideColorIndex, SideColorIndex];
   rightFace: readonly [SideColorIndex, SideColorIndex, SideColorIndex];
+  // Random base for the two solved side-face layers; (solvedBase+1)%4 is used for the right face
+  solvedBase: SideColorIndex;
 };
 
 @Injectable({
@@ -19,6 +21,7 @@ export class CubeStateService {
     return {
       leftFace: layout.left,
       rightFace: layout.right,
+      solvedBase: Math.floor(Math.random() * 4) as SideColorIndex,
     };
   });
 

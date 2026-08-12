@@ -809,7 +809,7 @@ The following architectural rule is required regardless of representation:
 
 ### 12.1 Presentation
 
-The primary visual element is an orthographic representation of the cube.
+The primary visual element is an **isometric** representation of the cube viewed from a slightly elevated front-right angle.
 
 The trainer shall display:
 
@@ -820,7 +820,7 @@ The cube should be large enough for sticker relationships to be immediately reco
 
 The visual emphasis is recognition rather than realistic three-dimensional rendering.
 
-Perspective distortion should therefore be avoided.
+Perspective distortion (foreshortening) should therefore be avoided; isometric projection preserves face proportions without perspective.
 
 ---
 
@@ -858,6 +858,10 @@ The renderer conceptually receives:
 `logical cube/display state` + `appearance state` → `SVG polygons`
 
 Logical cube state determines which side-color index belongs on each sticker position. Appearance state determines how that index is displayed: concrete fill color, border color, border width. Changing appearance should change rendered sticker colors without changing logical cube state, observation data, or SVG geometry.
+
+#### Solved-Layer Colors
+
+The two bottom rows of each visible side face represent the two solved lower layers of the cube. For each presented case, the renderer independently selects a random base index `b ∈ {0, 1, 2, 3}`. The left visible face solved stickers use index `b`; the right visible face solved stickers use index `(b + 1) mod 4`. These solved-layer colors are independent of the U-layer PLL sticker colors and independent of the `Left_0` anchor.
 
 ---
 
@@ -1669,12 +1673,14 @@ Version 1.0 is complete when all of the following are true.
 * Yellow is displayed on top.
 * White is opposite yellow.
 * Side-color indices map to the canonical red → green → orange → blue sequence.
-* The top face and two adjacent side faces are displayed without perspective distortion.
-* The SVG output is orthographic and resolution-independent.
+* The top face and two adjacent side faces are displayed in an isometric projection without perspective distortion.
+* Each visible side face is rendered as a full 3×3 grid: the U-layer row shows PLL sticker colors; the bottom two rows show solved-layer colors.
+* Solved-layer colors use a randomly chosen sequential pair `(b, (b+1)%4)` independent of the PLL sticker colors.
+* The SVG output is isometric and resolution-independent.
 * Updating authoritative cube/display state causes the corresponding polygon fills to update.
 * Changing appearance mapping changes rendered sticker colors without changing logical cube state.
 * Cube geometry (polygon coordinates) is independent from PLL identity and recognition-group logic.
-* Each sticker polygon has a stable semantic identity (face + position) so that individual stickers can be targeted in future without redesigning the renderer.
+* Each sticker polygon has a stable semantic identity (face + row + column) so that individual stickers can be targeted in future without redesigning the renderer.
 
 ### Configuration
 
