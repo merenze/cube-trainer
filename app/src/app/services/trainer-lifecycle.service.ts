@@ -4,6 +4,7 @@ import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './color-anchor-
 import { type EligibleObservation } from './eligible-observation.service';
 import { type SideColorLayout } from '../domain/observation-color-layout';
 import { type PllPermutation } from '../domain/pll-catalog';
+import { SessionStatisticsService } from './session-statistics.service';
 
 export type TrainerLifecycleState = 'idle' | 'presenting' | 'empty';
 export type AnswerFeedback = 'correct' | 'incorrect';
@@ -27,6 +28,7 @@ export class TrainerLifecycleService {
   constructor(
     private caseSelectorService: CaseSelectorService,
     @Inject(COLOR_ANCHOR_STRATEGY) private colorAnchorStrategy: ColorAnchorStrategy,
+    private statsService: SessionStatisticsService,
   ) {}
 
   advance(): void {
@@ -53,7 +55,9 @@ export class TrainerLifecycleService {
     }
 
     if (candidate === active.candidate) {
+      const firstTry = !this._incorrectAttemptOccurred();
       this._answerFeedback.set('correct');
+      this.statsService.recordRoundComplete(firstTry);
       this.advance();
     } else {
       this._incorrectAttemptOccurred.set(true);

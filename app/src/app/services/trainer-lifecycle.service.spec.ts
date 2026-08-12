@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { TrainerLifecycleService } from './trainer-lifecycle.service';
 import { CaseSelectorService } from './case-selector.service';
 import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './color-anchor-strategy';
+import { SessionStatisticsService } from './session-statistics.service';
 import { type EligibleObservation } from './eligible-observation.service';
 import { type SideColorLayout } from '../domain/observation-color-layout';
 
@@ -21,6 +22,18 @@ class FixedColorAnchorStrategy implements ColorAnchorStrategy {
   }
 }
 
+class StubSessionStatisticsService {
+  rounds: { firstTryCorrect: boolean }[] = [];
+
+  recordRoundComplete(firstTryCorrect: boolean): void {
+    this.rounds.push({ firstTryCorrect });
+  }
+
+  reset(): void {
+    this.rounds = [];
+  }
+}
+
 class StubCaseSelectorService {
   private queue: (EligibleObservation | null)[] = [];
 
@@ -36,15 +49,18 @@ class StubCaseSelectorService {
 describe('TrainerLifecycleService', () => {
   let service: TrainerLifecycleService;
   let stubCaseSelector: StubCaseSelectorService;
+  let stubStats: StubSessionStatisticsService;
 
   beforeEach(() => {
     stubCaseSelector = new StubCaseSelectorService();
+    stubStats = new StubSessionStatisticsService();
 
     TestBed.configureTestingModule({
       providers: [
         TrainerLifecycleService,
         { provide: CaseSelectorService, useValue: stubCaseSelector },
         { provide: COLOR_ANCHOR_STRATEGY, useClass: FixedColorAnchorStrategy },
+        { provide: SessionStatisticsService, useValue: stubStats },
       ],
     });
 
@@ -154,5 +170,33 @@ describe('TrainerLifecycleService', () => {
   it('should do nothing when submitAnswer is called with no active observation', () => {
     expect(() => service.submitAnswer('Ua' as any)).not.toThrow();
     expect(service.state()).toBe('idle');
+  });
+
+  it('should record first-try-correct when correct on first attempt', () => {
+    stubCaseSelector.setQueue(makeObs('Ua'), makeObs('Ub'));
+    service.advance();
+
+    service.submitAnswer('Ua' as any);
+
+    expect(stubStats.rounds).toEqual([{ firstTryCorrect: true }]);
+  });
+
+  it('should record not-first-try when correct after an incorrect attempt', () => {
+    stubCaseSelector.setQueue(makeObs('Ua'), makeObs('Ub'));
+    service.advance();
+    service.submitAnswer('Ub' as any); // wrong
+
+    service.submitAnswer('Ua' as any); // correct
+
+    expect(stubStats.rounds).toEqual([{ firstTryCorrect: false }]);
+  });
+
+  it('should not record stats on incorrect answer', () => {
+    stubCaseSelector.setQueue(makeObs('Ua'));
+    service.advance();
+
+    service.submitAnswer('Ub' as any);
+
+    expect(stubStats.rounds.length).toBe(0);
   });
 });
