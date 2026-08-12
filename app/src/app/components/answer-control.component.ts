@@ -16,7 +16,7 @@ import { type PllPermutation } from '../domain/pll-catalog';
             class="answer-chip"
             data-answer-chip
             [attr.data-answer]="candidate"
-            (click)="submitAnswer(candidate)">
+            (click)="onChipClick(candidate)">
             {{ candidate }}
           </button>
         }
@@ -32,7 +32,6 @@ export class AnswerControlComponent {
     () => this.lifecycleService.state() === 'presenting',
   );
 
-  // Unique union of enabled candidates across all enabled groups
   protected readonly answerSet = computed<readonly PllPermutation[]>(() => {
     const seen = new Set<PllPermutation>();
     for (const group of CANONICAL_RECOGNITION_GROUPS) {
@@ -45,7 +44,12 @@ export class AnswerControlComponent {
     return Array.from(seen);
   });
 
-  protected submitAnswer(candidate: PllPermutation): void {
-    this.lifecycleService.submitAnswer(candidate);
+  protected onChipClick(candidate: PllPermutation): void {
+    // If round already answered correctly, advance to next case instead of re-evaluating
+    if (this.lifecycleService.answerFeedback() === 'correct') {
+      this.lifecycleService.advance();
+    } else {
+      this.lifecycleService.submitAnswer(candidate);
+    }
   }
 }

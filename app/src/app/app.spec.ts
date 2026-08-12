@@ -17,10 +17,11 @@ class StubTrainerLifecycleService {
   readonly activeObservation = signal(null).asReadonly();
   readonly resolvedLayout = signal(null).asReadonly();
   readonly incorrectAttemptOccurred = signal(false).asReadonly();
+  advanceCalls = 0;
 
   setState(s: TrainerLifecycleState) { this._state.set(s); }
   setFeedback(f: AnswerFeedback | null) { this._answerFeedback.set(f); }
-  advance = () => {};
+  advance = () => { this.advanceCalls++; };
   submitAnswer = (_: any) => {};
 }
 
@@ -123,5 +124,37 @@ describe('App', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('First-try correct');
+  });
+
+  it('should show a start button when lifecycle is idle', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const btn = (fixture.nativeElement as HTMLElement).querySelector('.start-btn');
+    expect(btn).not.toBeNull();
+  });
+
+  it('should call lifecycle.advance when start button is clicked', async () => {
+    const fixture = TestBed.createComponent(App);
+    const stub = TestBed.inject(TrainerLifecycleService) as unknown as StubTrainerLifecycleService;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const btn: HTMLButtonElement = (fixture.nativeElement as HTMLElement).querySelector('.start-btn')!;
+    btn.click();
+
+    expect(stub.advanceCalls).toBe(1);
+  });
+
+  it('should hide start button when lifecycle is presenting', async () => {
+    const fixture = TestBed.createComponent(App);
+    const stub = TestBed.inject(TrainerLifecycleService) as unknown as StubTrainerLifecycleService;
+    stub.setState('presenting');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const btn = (fixture.nativeElement as HTMLElement).querySelector('.start-btn');
+    expect(btn).toBeNull();
   });
 });

@@ -138,11 +138,23 @@ describe('TrainerLifecycleService', () => {
     expect(service.activeObservation()?.candidate).toBe('Ua');
   });
 
-  it('should advance to next case after correct answer', () => {
+  it('should set correct feedback but stay on same case after correct answer', () => {
     stubCaseSelector.setQueue(makeObs('Ua'), makeObs('Ub'));
     service.advance();
 
     service.submitAnswer('Ua' as any);
+
+    expect(service.answerFeedback()).toBe('correct');
+    expect(service.activeObservation()?.candidate).toBe('Ua');
+    expect(service.state()).toBe('presenting');
+  });
+
+  it('should advance to next case when advance() is called after correct answer', () => {
+    stubCaseSelector.setQueue(makeObs('Ua'), makeObs('Ub'));
+    service.advance();
+    service.submitAnswer('Ua' as any);
+
+    service.advance();
 
     expect(service.activeObservation()?.candidate).toBe('Ub');
   });
@@ -158,11 +170,15 @@ describe('TrainerLifecycleService', () => {
     expect(service.activeObservation()?.candidate).toBe('Ua');
   });
 
-  it('should go to empty state when correct answer exhausts cases', () => {
+  it('should remain in presenting state after correct answer until advance() is called', () => {
     stubCaseSelector.setQueue(makeObs('Ua'), null);
     service.advance();
 
     service.submitAnswer('Ua' as any);
+
+    expect(service.state()).toBe('presenting');
+
+    service.advance();
 
     expect(service.state()).toBe('empty');
   });

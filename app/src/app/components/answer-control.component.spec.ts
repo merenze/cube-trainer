@@ -8,15 +8,18 @@ import type { TrainerLifecycleState } from '../services/trainer-lifecycle.servic
 
 class StubTrainerLifecycleService {
   private readonly _state = signal<TrainerLifecycleState>('presenting');
+  private readonly _answerFeedback = signal<any>(null);
   readonly state = this._state.asReadonly();
+  readonly answerFeedback = this._answerFeedback.asReadonly();
   readonly activeObservation = signal(null).asReadonly();
   readonly resolvedLayout = signal(null).asReadonly();
-  readonly answerFeedback = signal(null).asReadonly();
   readonly incorrectAttemptOccurred = signal(false).asReadonly();
   submittedAnswers: string[] = [];
+  advanceCalls = 0;
 
   setState(s: TrainerLifecycleState) { this._state.set(s); }
-  advance = () => {};
+  setFeedback(f: any) { this._answerFeedback.set(f); }
+  advance = () => { this.advanceCalls++; };
   submitAnswer = (candidate: string) => { this.submittedAnswers.push(candidate); };
 }
 
@@ -101,6 +104,21 @@ describe('AnswerControlComponent', () => {
     chip.click();
 
     expect(stubLifecycle.submittedAnswers).toContain(candidate);
+  });
+
+  it('should call lifecycle.advance when a chip is clicked after a correct answer', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    const candidate = group.candidates[0];
+    configService.enableGroup(group.key);
+    stubLifecycle.setFeedback('correct');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-answer="${candidate}"]`);
+    chip.click();
+
+    expect(stubLifecycle.advanceCalls).toBe(1);
+    expect(stubLifecycle.submittedAnswers.length).toBe(0);
   });
 
   it('should hide answer chips when lifecycle state is idle', async () => {

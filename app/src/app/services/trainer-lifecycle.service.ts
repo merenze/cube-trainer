@@ -58,7 +58,7 @@ export class TrainerLifecycleService {
       const firstTry = !this._incorrectAttemptOccurred();
       this._answerFeedback.set('correct');
       this.statsService.recordRoundComplete(firstTry);
-      this.advance();
+      // Do NOT auto-advance: feedback='correct' stays visible until advance() is called
     } else {
       this._incorrectAttemptOccurred.set(true);
       this._answerFeedback.set('incorrect');

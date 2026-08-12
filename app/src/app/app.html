@@ -14,6 +14,7 @@
 
   @if (lifecycle.state() === 'idle' || lifecycle.state() === 'empty') {
     <p class="empty-state">Enable at least one recognition group to begin training.</p>
+    <button type="button" class="start-btn" (click)="lifecycle.advance()">Start Training</button>
   }
 
   @if (lifecycle.answerFeedback() === 'correct') {
