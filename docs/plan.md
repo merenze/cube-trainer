@@ -92,25 +92,31 @@ Completed:
 
 Remaining:
 
-1. Build display-only orthographic cube renderer component.
-   - Subscribe to CubeStateService.
-   - Map side-color indices to display colors via AppearanceService.
-   - Render yellow top face plus two adjacent side faces.
-   - Use SVG or CSS geometry; do not own authoritative state.
+1. Build the SVG cube renderer component.
+   - Angular standalone component; consumes CubeStateService and AppearanceService.
+   - Renders one SVG `<polygon>` per visible sticker: top face (9 stickers), left face (visible stickers), right face (visible stickers).
+   - Each polygon's `fill` is derived from the logical side-color index via AppearanceService.sideIndexToColor(). Top stickers use AppearanceService.topColor.
+   - Polygon coordinates (geometry) are presentation-only constants defined in the component or a co-located geometry helper; they are not part of logical cube state.
+   - Each sticker polygon has a stable semantic identity (face + position index, e.g. `top-0`, `left-2`, `right-1`) to support future per-sticker targeting.
+   - Canvas, CSS-only geometry, and pre-rendered images are not used.
+   - Orthographic layout; no perspective distortion.
+   - Responsive via SVG viewport/viewBox.
 
-2. Add renderer and state mapping tests.
-   - Validate yellow-top constraint.
-   - Validate side-index-to-color mapping correctness.
-   - Validate no mutation of authoritative state by renderer.
+2. Add renderer component tests.
+   - Verify the component renders using SVG (no Canvas).
+   - Verify the expected number of `<polygon>` elements exists for the top, left, and right faces.
+   - Verify that changing the logical side-color index for a sticker position updates the corresponding polygon's `fill` without changing any other sticker.
+   - Verify top-face polygons always use the yellow appearance color regardless of logical state.
+   - Verify sticker border attributes (stroke/stroke-width) come from AppearanceService, not from domain/state data.
+   - Verify that providing a new CubeDisplayState updates fills; providing null clears or hides the cube.
 
-3. Add deterministic anchor-coverage tests (requires clean catalog).
-   - For each valid observation in the cleaned catalog, verify that applying each of the four anchor offsets produces a layout that normalizes back to the same canonical layout.
+3. Add anchor-coverage tests (requires clean catalog — see canonical data validation prerequisite).
+   - For each valid observation in the corrected catalog, verify that applying each of the four anchor offsets produces a layout that normalizes back to the same canonical layout.
    - Verify that the recognition group derived from each anchored variant matches the observation's recognition group.
-   - These tests are blocked until the canonical data inconsistencies (section 10.2) are resolved.
 
-4. Wire up concrete ColorAnchorStrategy implementation for the application.
-   - Implement RandomColorAnchorStrategy: randomly selects one of the observation's four valid anchor offsets.
-   - Register in app providers.
+4. Wire up concrete ColorAnchorStrategy implementation.
+   - Implement RandomColorAnchorStrategy: selects one anchor offset uniformly at random from {0, 1, 2, 3} and applies it to the observation's canonical normalized layout.
+   - Register in app providers via COLOR_ANCHOR_STRATEGY token.
 
 ### Phase 5 - UI Composition and Interaction
 

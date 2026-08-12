@@ -824,42 +824,61 @@ Perspective distortion should therefore be avoided.
 
 ---
 
-### 12.2 Drawing the Cube
+### 12.2 SVG Rendering
 
-The cube shall be drawn by the application rather than represented by a library of pre-rendered PLL screenshots.
+Version 1.0 shall render the cube using browser-native **SVG**. Canvas, CSS-only geometry, pre-rendered images, and PLL screenshots are explicitly not used.
 
-The renderer shall consume logical cube state from the state/service layer.
+The cube SVG is composed from geometry owned by the renderer component. SVG presentation attributes such as `fill`, `stroke`, and `stroke-width` must not become domain data. Logical sticker identity and color data must not depend on pixel coordinates or SVG element references.
 
-The specific browser-native rendering technique is an implementation decision.
+#### One Polygon Per Sticker
 
-Possible implementation mechanisms include:
+Every visible sticker must be rendered as its own individual SVG `<polygon>` element. An entire face must not be represented as one combined polygon, a background image, or any other flattened representation.
 
-* SVG
-* CSS geometry
-* Canvas
+For the version 1.0 view (top face + two adjacent side faces) this means one `<polygon>` per visible sticker position. Each polygon has its own independently controlled geometry and visual properties.
 
-The design does not mandate one.
+This is an intentional architectural decision. The sticker-level granularity enables:
+
+* independent per-sticker fill mapping from appearance state;
+* configurable sticker colors in future versions without changing cube state;
+* configurable sticker border color and width;
+* straightforward inspection and debugging;
+* resolution-independent responsive rendering;
+* future pedagogical features that emphasize individual stickers or sticker relationships.
+
+Version 1.0 does not implement those future features. The polygon-level structure preserves the capability.
+
+#### Sticker Identity
+
+Each sticker polygon has a stable semantic identity within the rendered view corresponding to face and position, for example `top-0` through `top-8`, `left-0` through `left-8`, `right-0` through `right-8`, or an equivalent typed representation. DOM `id` attributes are not mandatory, but stickers must be modeled and rendered individually so that any sticker can be independently targeted without redesigning the renderer.
+
+#### Renderer Data Flow
+
+The renderer conceptually receives:
+
+`logical cube/display state` + `appearance state` → `SVG polygons`
+
+Logical cube state determines which side-color index belongs on each sticker position. Appearance state determines how that index is displayed: concrete fill color, border color, border width. Changing appearance should change rendered sticker colors without changing logical cube state, observation data, or SVG geometry.
 
 ---
 
 ### 12.3 Renderer Responsibility
 
-The cube renderer is a presentation component.
+The cube renderer is a presentation component implemented as an Angular component.
 
-Its responsibility is limited to rendering current cube display state.
+It receives or subscribes to resolved display state and appearance state, renders one SVG polygon per visible sticker, and maps logical sticker values through appearance state to SVG fill and stroke attributes.
 
-It must not know:
+The renderer must not:
 
-* Why the current cube state was selected.
-* Which recognition groups are active.
-* Which candidate PLLs are enabled.
-* How cases are randomized.
-* Which PLL is correct.
-* Whether an answer was correct.
-* How session statistics are calculated.
-* How cube state is persisted.
-
-The renderer may know only what is required to convert logical display state into visual geometry.
+* select cases or choose the active observation;
+* determine which PLL is correct;
+* evaluate answers;
+* apply PLL algorithms;
+* infer recognition groups from rendered geometry;
+* own authoritative cube state;
+* perform color-anchor randomization;
+* know which recognition groups or candidates are enabled;
+* know whether an answer was correct;
+* know how session statistics are calculated.
 
 ---
 
@@ -925,16 +944,16 @@ Version 1.0 uses a fixed appearance.
 
 The architecture should nevertheless maintain a clear future state boundary for:
 
-* Sticker display colors
+* Sticker display colors (mapped from logical side-color indices to CSS color strings)
 * Sticker-border color
 * Sticker-border width
 * Top-face visibility
 * Cube display orientation
 * Appearance presets
 
-The cube renderer may consume appearance state.
+The SVG renderer consumes appearance state to set polygon `fill` and `stroke` attributes.
 
-It must not own it.
+It must not own appearance state.
 
 Version 1.0 should not implement persistence or preset machinery solely in anticipation of future requirements.
 
@@ -1642,13 +1661,20 @@ Version 1.0 is complete when all of the following are true.
 
 ### Cube Display
 
-* The application draws an orthographic cube representation.
+* The application renders the cube using browser-native SVG.
+* Canvas, pre-rendered images, and PLL screenshots are not used.
+* Every visible sticker is rendered as exactly one individual SVG `<polygon>` element.
+* Each polygon's `fill` is derived from the logical side-color index for that sticker position through appearance/color mapping.
+* Sticker border styling (`stroke`, `stroke-width`) is appearance data, not logical cube state.
 * Yellow is displayed on top.
 * White is opposite yellow.
-* The renderer maps side indices to canonical side colors.
-* Side colors follow the canonical red → green → orange → blue order.
-* The top and two adjacent sides are displayed.
-* The rendered cube accurately represents the active observation.
+* Side-color indices map to the canonical red → green → orange → blue sequence.
+* The top face and two adjacent side faces are displayed without perspective distortion.
+* The SVG output is orthographic and resolution-independent.
+* Updating authoritative cube/display state causes the corresponding polygon fills to update.
+* Changing appearance mapping changes rendered sticker colors without changing logical cube state.
+* Cube geometry (polygon coordinates) is independent from PLL identity and recognition-group logic.
+* Each sticker polygon has a stable semantic identity (face + position) so that individual stickers can be targeted in future without redesigning the renderer.
 
 ### Configuration
 
