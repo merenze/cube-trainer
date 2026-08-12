@@ -1,12 +1,15 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { CubeRendererComponent } from './components/cube-renderer.component';
+import { TrainerLifecycleService } from './services/trainer-lifecycle.service';
+import { SessionStatisticsService } from './services/session-statistics.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [CubeRendererComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('cube-trainer-app');
+  protected readonly lifecycle = inject(TrainerLifecycleService);
+  protected readonly stats = inject(SessionStatisticsService);
 }
