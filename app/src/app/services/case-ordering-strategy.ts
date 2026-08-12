@@ -1,8 +1,10 @@
+import { InjectionToken } from '@angular/core';
 import { type EligibleObservation } from './eligible-observation.service';
+
+export const CASE_ORDERING_STRATEGY = new InjectionToken<CaseOrderingStrategy>('CaseOrderingStrategy');
 
 /**
  * Abstraction for ordering cases presented to the trainer.
- * Different implementations provide different ordering strategies (e.g., random, weighted, sequential).
  */
 export interface CaseOrderingStrategy {
   /**
