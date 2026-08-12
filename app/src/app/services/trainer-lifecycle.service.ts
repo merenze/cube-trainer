@@ -64,4 +64,12 @@ export class TrainerLifecycleService {
       this._answerFeedback.set('incorrect');
     }
   }
+
+  resetToIdle(): void {
+    this._state.set('idle');
+    this._activeObservation.set(null);
+    this._resolvedLayout.set(null);
+    this._answerFeedback.set(null);
+    this._incorrectAttemptOccurred.set(false);
+  }
 }

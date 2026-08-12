@@ -130,12 +130,41 @@ main {
   padding: 8px 0;
 }
 
-.start-btn {
+.start-btn,
+.configure-btn {
   padding: 10px 28px;
   border-radius: 20px;
   border: none;
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-label-large);
+  cursor: pointer;
+}
+
+.config-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.done-btn {
+  padding: 10px 28px;
+  border-radius: 20px;
+  border: none;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-label-large);
+  cursor: pointer;
+}
+
+.cancel-btn {
+  padding: 10px 28px;
+  border-radius: 20px;
+  border: 1.5px solid var(--mat-sys-outline);
+  background: transparent;
+  color: var(--mat-sys-on-surface);
   font: var(--mat-sys-label-large);
   cursor: pointer;
 }

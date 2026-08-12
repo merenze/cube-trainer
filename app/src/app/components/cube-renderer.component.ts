@@ -28,11 +28,12 @@ function topPts(r: number, c: number): string {
 }
 
 function leftPts(lr: number, lc: number): string {
+  // Left face hangs from the LEFT corner (0,3B) stepping toward BOTTOM corner (+A,+B) per column
   return pts([
-    [OX - A * lc,       B * lc       + lr * SH       ],
-    [OX - A * (lc + 1), B * (lc + 1) + lr * SH       ],
-    [OX - A * (lc + 1), B * (lc + 1) + (lr + 1) * SH ],
-    [OX - A * lc,       B * lc       + (lr + 1) * SH ],
+    [A * lc,       3 * B + B * lc       + lr * SH       ],
+    [A * (lc + 1), 3 * B + B * (lc + 1) + lr * SH       ],
+    [A * (lc + 1), 3 * B + B * (lc + 1) + (lr + 1) * SH ],
+    [A * lc,       3 * B + B * lc       + (lr + 1) * SH ],
   ]);
 }
 

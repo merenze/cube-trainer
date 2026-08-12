@@ -127,4 +127,69 @@ describe('trainer configuration service', () => {
     service.enableCandidate(group.key, group.candidates[0]);
     expect(service.configurationVersion()).toBeGreaterThan(v);
   });
+
+  it('takeSnapshot should capture enabled groups and candidates', () => {
+    const group0 = CANONICAL_RECOGNITION_GROUPS[0];
+    const group1 = CANONICAL_RECOGNITION_GROUPS[1];
+    service.enableGroup(group0.key);
+    service.enableGroup(group1.key);
+    service.disableCandidate(group0.key, group0.candidates[0]);
+
+    const snap = service.takeSnapshot();
+
+    expect(snap.enabledGroups).toContain(group0.key);
+    expect(snap.enabledGroups).toContain(group1.key);
+    expect(snap.enabledCandidates.get(group0.key)).not.toContain(group0.candidates[0]);
+    expect(snap.enabledCandidates.get(group0.key)?.length).toBe(group0.candidates.length - 1);
+  });
+
+  it('takeSnapshot of empty config should have no enabled groups', () => {
+    const snap = service.takeSnapshot();
+    expect(snap.enabledGroups.length).toBe(0);
+  });
+
+  it('restoreSnapshot should restore enabled groups', () => {
+    const group0 = CANONICAL_RECOGNITION_GROUPS[0];
+    service.enableGroup(group0.key);
+    const snap = service.takeSnapshot();
+
+    service.disableGroup(group0.key);
+    expect(service.enabledGroupKeys()).not.toContain(group0.key);
+
+    service.restoreSnapshot(snap);
+
+    expect(service.enabledGroupKeys()).toContain(group0.key);
+  });
+
+  it('restoreSnapshot should restore per-group candidates', () => {
+    const group0 = CANONICAL_RECOGNITION_GROUPS[0];
+    service.enableGroup(group0.key);
+    service.disableCandidate(group0.key, group0.candidates[0]);
+    const snap = service.takeSnapshot();
+
+    service.enableCandidate(group0.key, group0.candidates[0]);
+    service.restoreSnapshot(snap);
+
+    expect(service.enabledCandidateKeys(group0.key)).not.toContain(group0.candidates[0]);
+    expect(service.enabledCandidateKeys(group0.key).length).toBe(group0.candidates.length - 1);
+  });
+
+  it('restoreSnapshot to empty should leave no enabled groups', () => {
+    const group0 = CANONICAL_RECOGNITION_GROUPS[0];
+    const emptySnap = service.takeSnapshot();
+
+    service.enableGroup(group0.key);
+    service.restoreSnapshot(emptySnap);
+
+    expect(service.enabledGroupKeys().length).toBe(0);
+  });
+
+  it('restoreSnapshot should bump configurationVersion', () => {
+    const snap = service.takeSnapshot();
+    const v = service.configurationVersion();
+
+    service.restoreSnapshot(snap);
+
+    expect(service.configurationVersion()).toBeGreaterThan(v);
+  });
 });

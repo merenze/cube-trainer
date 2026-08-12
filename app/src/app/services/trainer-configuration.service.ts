@@ -5,6 +5,11 @@ import {
 import { type RecognitionGroupKey } from '../domain/recognition-group-key';
 import { type PllPermutation } from '../domain/pll-catalog';
 
+export type ConfigSnapshot = {
+  enabledGroups: readonly RecognitionGroupKey[];
+  enabledCandidates: ReadonlyMap<RecognitionGroupKey, readonly PllPermutation[]>;
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -80,6 +85,29 @@ export class TrainerConfigurationService {
       this.enabledCandidatesByGroup.set(groupKey, candidates);
     }
     candidates.add(candidate);
+    this.bumpVersion();
+  }
+
+  takeSnapshot(): ConfigSnapshot {
+    const enabledGroups = Array.from(this.enabledGroups);
+    const enabledCandidates = new Map<RecognitionGroupKey, readonly PllPermutation[]>();
+    for (const key of enabledGroups) {
+      const candidates = this.enabledCandidatesByGroup.get(key);
+      enabledCandidates.set(key, candidates ? Array.from(candidates) : []);
+    }
+    return { enabledGroups, enabledCandidates };
+  }
+
+  restoreSnapshot(snapshot: ConfigSnapshot): void {
+    this.enabledGroups.clear();
+    this.enabledCandidatesByGroup.clear();
+    for (const key of snapshot.enabledGroups) {
+      this.enabledGroups.add(key);
+      const candidates = snapshot.enabledCandidates.get(key);
+      if (candidates) {
+        this.enabledCandidatesByGroup.set(key, new Set(candidates));
+      }
+    }
     this.bumpVersion();
   }
 }

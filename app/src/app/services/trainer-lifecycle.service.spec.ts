@@ -215,4 +215,36 @@ describe('TrainerLifecycleService', () => {
 
     expect(stubStats.rounds.length).toBe(0);
   });
+
+  it('should reset to idle state when resetToIdle() is called', () => {
+    stubCaseSelector.setQueue(makeObs('Ua'));
+    service.advance();
+
+    service.resetToIdle();
+
+    expect(service.state()).toBe('idle');
+  });
+
+  it('should clear all signals when resetToIdle() is called', () => {
+    stubCaseSelector.setQueue(makeObs('Ua'));
+    service.advance();
+    service.submitAnswer('Ub' as any); // incorrect → sets feedback and incorrectAttemptOccurred
+
+    service.resetToIdle();
+
+    expect(service.activeObservation()).toBeNull();
+    expect(service.resolvedLayout()).toBeNull();
+    expect(service.answerFeedback()).toBeNull();
+    expect(service.incorrectAttemptOccurred()).toBe(false);
+  });
+
+  it('should not record stats when resetToIdle() is called', () => {
+    stubCaseSelector.setQueue(makeObs('Ua'));
+    service.advance();
+    const roundsBefore = stubStats.rounds.length;
+
+    service.resetToIdle();
+
+    expect(stubStats.rounds.length).toBe(roundsBefore);
+  });
 });

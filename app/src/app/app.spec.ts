@@ -4,6 +4,7 @@ import { App } from './app';
 import { TrainerLifecycleService } from './services/trainer-lifecycle.service';
 import { SessionStatisticsService } from './services/session-statistics.service';
 import { CubeStateService } from './services/cube-state.service';
+import { TrainerConfigurationService } from './services/trainer-configuration.service';
 import { CASE_ORDERING_STRATEGY } from './services/case-ordering-strategy';
 import { COLOR_ANCHOR_STRATEGY } from './services/color-anchor-strategy';
 import { type CubeDisplayState } from './services/cube-state.service';
@@ -18,11 +19,13 @@ class StubTrainerLifecycleService {
   readonly resolvedLayout = signal(null).asReadonly();
   readonly incorrectAttemptOccurred = signal(false).asReadonly();
   advanceCalls = 0;
+  resetToIdleCalls = 0;
 
   setState(s: TrainerLifecycleState) { this._state.set(s); }
   setFeedback(f: AnswerFeedback | null) { this._answerFeedback.set(f); }
   advance = () => { this.advanceCalls++; };
   submitAnswer = (_: any) => {};
+  resetToIdle = () => { this.resetToIdleCalls++; this._state.set('idle'); };
 }
 
 class StubSessionStatisticsService {
@@ -38,6 +41,7 @@ const MINIMAL_PROVIDERS = [
   { provide: TrainerLifecycleService, useClass: StubTrainerLifecycleService },
   { provide: SessionStatisticsService, useClass: StubSessionStatisticsService },
   { provide: CubeStateService, useClass: StubCubeStateService },
+  TrainerConfigurationService,
   { provide: CASE_ORDERING_STRATEGY, useValue: { order: (o: any) => o } },
   { provide: COLOR_ANCHOR_STRATEGY, useValue: { selectLayout: (o: any) => o.colorLayoutVariants[0] } },
 ];
@@ -156,5 +160,91 @@ describe('App', () => {
 
     const btn = (fixture.nativeElement as HTMLElement).querySelector('.start-btn');
     expect(btn).toBeNull();
+  });
+
+  it('should show Configure button when not configuring', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('.configure-btn')).not.toBeNull();
+  });
+
+  it('should hide Configure button while configuring', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.configure-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('.configure-btn')).toBeNull();
+  });
+
+  it('should show config panel after clicking Configure', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.configure-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-trainer-configuration')).not.toBeNull();
+  });
+
+  it('should hide cube renderer while configuring', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.configure-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-cube-renderer')).toBeNull();
+  });
+
+  it('should return to training view when Cancel is clicked', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.configure-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.cancel-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-cube-renderer')).not.toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-trainer-configuration')).toBeNull();
+  });
+
+  it('should restore config snapshot when Cancel is clicked', async () => {
+    const fixture = TestBed.createComponent(App);
+    const configService = TestBed.inject(TrainerConfigurationService);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // Open config and enable a group via the chip
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.configure-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const firstGroupChip: HTMLButtonElement =
+      (fixture.nativeElement as HTMLElement).querySelector('[data-group-chip]')!;
+    firstGroupChip.click();
+    fixture.detectChanges();
+    expect(configService.enabledGroupKeys().length).toBeGreaterThan(0);
+
+    // Cancel should undo the change
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.cancel-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(configService.enabledGroupKeys().length).toBe(0);
   });
 });
