@@ -4,6 +4,8 @@ import {
   type SideColorLayout,
 } from './observation-color-layout';
 
+export type { SideColorLayout };
+
 export type ObservationTripletKey =
   `${PllPermutation}|${FacePattern}|${FacePattern}`;
 
