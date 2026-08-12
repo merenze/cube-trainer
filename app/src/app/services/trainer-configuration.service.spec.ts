@@ -92,4 +92,39 @@ describe('trainer configuration service', () => {
       CANONICAL_RECOGNITION_GROUPS[1].candidates.length,
     );
   });
+
+  it('should start with configurationVersion 0', () => {
+    expect(service.configurationVersion()).toBe(0);
+  });
+
+  it('should increment configurationVersion when a group is enabled', () => {
+    const key = CANONICAL_RECOGNITION_GROUPS[0].key;
+    service.enableGroup(key);
+    expect(service.configurationVersion()).toBeGreaterThan(0);
+  });
+
+  it('should increment configurationVersion when a group is disabled', () => {
+    const key = CANONICAL_RECOGNITION_GROUPS[0].key;
+    service.enableGroup(key);
+    const v = service.configurationVersion();
+    service.disableGroup(key);
+    expect(service.configurationVersion()).toBeGreaterThan(v);
+  });
+
+  it('should increment configurationVersion when a candidate is disabled', () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    service.enableGroup(group.key);
+    const v = service.configurationVersion();
+    service.disableCandidate(group.key, group.candidates[0]);
+    expect(service.configurationVersion()).toBeGreaterThan(v);
+  });
+
+  it('should increment configurationVersion when a candidate is re-enabled', () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    service.enableGroup(group.key);
+    service.disableCandidate(group.key, group.candidates[0]);
+    const v = service.configurationVersion();
+    service.enableCandidate(group.key, group.candidates[0]);
+    expect(service.configurationVersion()).toBeGreaterThan(v);
+  });
 });

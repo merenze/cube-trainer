@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import {
   CANONICAL_RECOGNITION_GROUPS,
 } from '../domain/recognition-groups';
@@ -14,6 +14,13 @@ export class TrainerConfigurationService {
     RecognitionGroupKey,
     Set<PllPermutation>
   >();
+
+  private readonly _configurationVersion = signal(0);
+  readonly configurationVersion = this._configurationVersion.asReadonly();
+
+  private bumpVersion(): void {
+    this._configurationVersion.update((v) => v + 1);
+  }
 
   private getGroupByKey(key: RecognitionGroupKey) {
     return CANONICAL_RECOGNITION_GROUPS.find((g) => g.key === key);
@@ -33,10 +40,12 @@ export class TrainerConfigurationService {
         new Set(group.candidates),
       );
     }
+    this.bumpVersion();
   }
 
   disableGroup(key: RecognitionGroupKey): void {
     this.enabledGroups.delete(key);
+    this.bumpVersion();
   }
 
   enabledGroupKeys(): readonly RecognitionGroupKey[] {
@@ -56,6 +65,7 @@ export class TrainerConfigurationService {
     const candidates = this.enabledCandidatesByGroup.get(groupKey);
     if (candidates) {
       candidates.delete(candidate);
+      this.bumpVersion();
     }
   }
 
@@ -70,5 +80,6 @@ export class TrainerConfigurationService {
       this.enabledCandidatesByGroup.set(groupKey, candidates);
     }
     candidates.add(candidate);
+    this.bumpVersion();
   }
 }

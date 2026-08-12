@@ -2,7 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { CaseSelectorService } from './case-selector.service';
 import { EligibleObservationService } from './eligible-observation.service';
 import { CASE_ORDERING_STRATEGY, type CaseOrderingStrategy } from './case-ordering-strategy';
+import { TrainerConfigurationService } from './trainer-configuration.service';
 import { type EligibleObservation } from './eligible-observation.service';
+import { CANONICAL_RECOGNITION_GROUPS } from '../domain/recognition-groups';
 
 function makeObs(candidate: string): EligibleObservation {
   return {
@@ -43,6 +45,7 @@ describe('CaseSelectorService', () => {
     TestBed.configureTestingModule({
       providers: [
         CaseSelectorService,
+        TrainerConfigurationService,
         { provide: EligibleObservationService, useValue: stubEligible },
         { provide: CASE_ORDERING_STRATEGY, useClass: IdentityOrderingStrategy },
       ],
@@ -117,5 +120,40 @@ describe('CaseSelectorService', () => {
     const result = service.nextCase();
 
     expect(result).toBeNull();
+  });
+
+  it('should invalidate remaining bag when configuration version changes', () => {
+    const obs1 = [makeObs('Ua'), makeObs('Ub'), makeObs('Z')];
+    const obs2 = [makeObs('H')];
+    stubEligible.setReturnValues(obs1, obs2);
+
+    const configService = TestBed.inject(TrainerConfigurationService);
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+
+    // Fill a bag of 3 and consume 1
+    service.nextCase();
+
+    // Change configuration mid-bag (bumps version)
+    configService.enableGroup(group.key);
+
+    // Next call should re-query (obs2), not serve from stale bag
+    const result = service.nextCase();
+    expect(result?.candidate).toBe('H');
+  });
+
+  it('should not present a disabled candidate after configuration changes mid-bag', () => {
+    const obs1 = [makeObs('Ua'), makeObs('Ub')];
+    const obs2 = [makeObs('Z')];
+    stubEligible.setReturnValues(obs1, obs2);
+
+    const configService = TestBed.inject(TrainerConfigurationService);
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+
+    service.nextCase(); // consume from obs1
+    configService.enableGroup(group.key); // bumps version
+
+    // Stale bag entry (Ub) must not be served; fresh bag from obs2 should be
+    const result = service.nextCase();
+    expect(result?.candidate).toBe('Z');
   });
 });
