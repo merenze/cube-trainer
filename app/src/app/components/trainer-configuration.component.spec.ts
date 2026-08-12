@@ -98,4 +98,98 @@ describe('TrainerConfigurationComponent', () => {
     expect(configService.enabledGroupKeys()).toContain(group0.key);
     expect(configService.enabledGroupKeys()).toContain(group1.key);
   });
+
+  // Candidate chip tests
+  it('should show no candidate chips when no groups are enabled', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const candidateChips = fixture.nativeElement.querySelectorAll('[data-candidate-chip]');
+    expect(candidateChips.length).toBe(0);
+  });
+
+  it('should show candidate chips for an enabled group', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    configService.enableGroup(group.key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const candidateChips = fixture.nativeElement.querySelectorAll('[data-candidate-chip]');
+    expect(candidateChips.length).toBe(group.candidates.length);
+  });
+
+  it('should display the candidate PLL name on each candidate chip', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    configService.enableGroup(group.key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    for (const candidate of group.candidates) {
+      const chip = fixture.nativeElement.querySelector(
+        `[data-group-key="${group.key}"] ~ [data-candidate-chip][data-candidate="${candidate}"]`,
+      ) ?? fixture.nativeElement.querySelector(`[data-candidate="${candidate}"]`);
+      expect(chip).not.toBeNull();
+    }
+  });
+
+  it('should show all candidate chips as enabled by default', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    configService.enableGroup(group.key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const candidateChips = fixture.nativeElement.querySelectorAll('[data-candidate-chip]');
+    for (const chip of candidateChips) {
+      expect(chip.getAttribute('aria-pressed')).toBe('true');
+    }
+  });
+
+  it('should disable a candidate when its chip is clicked while enabled', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    const candidate = group.candidates[0];
+    configService.enableGroup(group.key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-candidate="${candidate}"]`);
+    chip.click();
+    fixture.detectChanges();
+
+    expect(configService.enabledCandidateKeys(group.key)).not.toContain(candidate);
+  });
+
+  it('should re-enable a candidate when its chip is clicked while disabled', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    const candidate = group.candidates[0];
+    configService.enableGroup(group.key);
+    configService.disableCandidate(group.key, candidate);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-candidate="${candidate}"]`);
+    chip.click();
+    fixture.detectChanges();
+
+    expect(configService.enabledCandidateKeys(group.key)).toContain(candidate);
+  });
+
+  it('should not show candidate chips for disabled groups', async () => {
+    const group0 = CANONICAL_RECOGNITION_GROUPS[0];
+    const group1 = CANONICAL_RECOGNITION_GROUPS[1];
+    configService.enableGroup(group0.key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const allCandidateChips = fixture.nativeElement.querySelectorAll('[data-candidate-chip]');
+    expect(allCandidateChips.length).toBe(group0.candidates.length);
+
+    // group1 candidates must not appear
+    for (const candidate of group1.candidates) {
+      if (!group0.candidates.includes(candidate)) {
+        expect(
+          fixture.nativeElement.querySelector(`[data-candidate="${candidate}"]`),
+        ).toBeNull();
+      }
+    }
+  });
 });
