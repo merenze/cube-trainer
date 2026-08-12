@@ -1054,19 +1054,27 @@ The trainer must nevertheless safely handle the resulting empty training pool.
 
 ## 18. Training Pool
 
-The active training pool is derived from:
+The atomic unit of training eligibility is an enabled `(recognition group, PLL permutation)` combination.
 
-1. Enabled recognition groups.
-2. Enabled candidates within each group.
-3. Canonical observations belonging to those group/candidate combinations.
+Each enabled candidate PLL within each enabled recognition group contributes **exactly one** eligible training case.
 
-Conceptually:
+For example, if the configuration is:
 
-`enabled recognition group + enabled group candidate → eligible observations`
+* `None | Bar inside → Gc, Gd, Y` (all enabled)
+* `Headlights | None → Gc` (enabled)
 
-The trainer shall not maintain a second manually synchronized list of eligible observations.
+the eligible pool contains exactly four entries:
 
-Eligibility must be derived from authoritative configuration state.
+* `(None | Bar inside, Gc)`
+* `(None | Bar inside, Gd)`
+* `(None | Bar inside, Y)`
+* `(Headlights | None, Gc)`
+
+The pool is **not** deduplicated by recognition group and **not** deduplicated by PLL permutation. `Gc` appearing as an enabled candidate in two different recognition groups contributes two distinct eligible cases. A recognition group with three enabled candidates contributes three distinct eligible cases.
+
+Color-anchor variants of an eligible case do not create additional pool entries. The four anchor rotations of `(None | Bar inside, Gc)` still represent one eligible case. Anchor selection occurs after a case is selected from the pool.
+
+Eligibility must be derived from authoritative configuration state. The trainer shall not maintain a second manually synchronized list.
 
 ---
 
@@ -1074,16 +1082,29 @@ Eligibility must be derived from authoritative configuration state.
 
 Case ordering shall be abstracted behind an ordering-strategy service.
 
-If there are `n` enabled eligible observations, the ordering service shall return an ordered list containing `n` observations.
+If there are `n` eligible `(recognition group, PLL permutation)` cases, the ordering service shall return a bag containing exactly `n` entries — one per eligible case.
 
-The trainer shall request and store one ordered list at a time (a bag), consume it sequentially, and request the next list only after the current list is exhausted.
+The trainer shall request and store one bag at a time, consume it sequentially, and request the next bag only after the current bag is exhausted.
 
-Version 1.0 shall use a shuffled-bag canonical strategy:
+Version 1.0 shall use a shuffled-bag strategy:
 
-* Return every currently eligible observation exactly once per bag.
-* Return the bag in randomized order.
+* Each eligible `(recognition group, PLL)` case appears **exactly once** per bag.
+* The bag is returned in randomized order.
 
-This guarantees even distribution within each bag while still providing random presentation order.
+A bag is explicitly **not**:
+
+* One entry per enabled recognition group.
+* One entry per unique enabled PLL.
+* One randomly chosen PLL from each enabled recognition group.
+* A random sample with replacement.
+
+It is a randomized permutation of the complete set of currently eligible `(recognition group, PLL)` cases.
+
+### Configuration Changes During a Bag
+
+If the effective eligible pool changes while a bag is partially consumed — because the user enables or disables a recognition group or candidate — the remaining bag entries are invalidated. Before selecting the next case, the trainer shall derive the new eligible pool from current configuration state and request a fresh bag from the ordering strategy.
+
+This ensures no disabled `(recognition group, PLL)` combination can be presented merely because it remained in a stale bag.
 
 The ordering-strategy abstraction must support deterministic testing by allowing the strategy to be mocked or substituted.
 
@@ -1645,14 +1666,29 @@ Version 1.0 is complete when all of the following are true.
 
 ### Case Selection
 
-* Only observations matching enabled groups and enabled group candidates may appear.
-* Eligible observations are derived from configuration state.
+* The atomic unit of eligibility is an enabled `(recognition group, PLL permutation)` combination.
+* Each enabled candidate PLL within an enabled recognition group contributes exactly one eligible case.
+* The same PLL enabled in two different recognition groups contributes two distinct eligible cases.
+* A recognition group with `k` enabled candidate PLLs contributes exactly `k` eligible cases.
+* Eligible cases are derived from configuration state; no separate synchronized list is maintained.
 * Case ordering is abstracted behind an ordering-strategy service.
-* If `n` eligible observations exist, the strategy returns `n` ordered observations per bag.
-* Version 1.0 uses a shuffled-bag strategy that returns each eligible observation exactly once per bag, in random order.
-* The trainer consumes the active bag completely before requesting the next bag.
+* If there are `n` eligible `(recognition group, PLL)` cases, the ordering strategy returns a bag of exactly `n` entries.
+* Version 1.0 uses a shuffled-bag strategy: each eligible case appears exactly once per bag, in random order.
+* Color-anchor variants do not create additional bag entries; each eligible case contributes one bag entry regardless of how many anchor rotations it has.
+* Color-anchor selection occurs after a bag entry is selected, not before.
+* The trainer consumes the active bag sequentially; when the bag is exhausted, the next bag is generated from the then-current eligible pool.
+* If effective configuration changes while a bag is partially consumed, the remaining bag is invalidated and a fresh bag is generated from the updated eligible pool before the next case is selected.
 * The ordering strategy can be mocked or substituted for deterministic testing.
 * The application handles an empty eligible pool without error.
+* Automated tests cover:
+  * A group with `k` candidates contributes exactly `k` bag entries.
+  * The same PLL in two groups contributes two distinct bag entries.
+  * Each eligible case appears exactly once per bag.
+  * No disabled group/candidate combination appears in any bag.
+  * A bag has exactly `n` entries when there are `n` eligible cases.
+  * Shuffling changes order only; bag membership is unchanged.
+  * Color-anchor variants do not multiply bag entries.
+  * Configuration changes invalidate the remaining bag before the next case is selected.
 
 ### Color Strategy and Layout
 

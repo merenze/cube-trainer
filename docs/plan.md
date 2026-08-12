@@ -31,10 +31,11 @@
 
 6. State services and selection engine (Phase 3 complete)
 - TrainerConfigurationService: owns enabled groups and per-group candidates.
-- EligibleObservationService: derives eligibility from authoritative configuration state.
+- EligibleObservationService: derives eligibility from authoritative configuration state. Each enabled (recognition group, PLL) combination is one eligible case; the service does not deduplicate by group or by PLL.
 - CaseOrderingStrategy abstraction + CaseOrderingStrategy injection token.
-- ShuffledBagOrderingStrategy: Fisher-Yates shuffle, returns each eligible observation exactly once per bag.
+- ShuffledBagOrderingStrategy: Fisher-Yates shuffle, returns each eligible (recognition group, PLL) case exactly once per bag. Color-anchor variants are not bag entries.
 - CaseSelectorService: manages bag lifecycle, re-queries eligibility on bag exhaustion.
+  - NOTE: bag-invalidation on mid-bag configuration change is not yet implemented. This is tracked as a Phase 4 prerequisite below.
 - ColorAnchorStrategy abstraction + COLOR_ANCHOR_STRATEGY injection token.
 - TrainerLifecycleService: signals-based round lifecycle with answer evaluation and first-try tracking.
 - SessionStatisticsService: tracks first-try-correct and total rounds.
@@ -66,6 +67,20 @@ Required resolution steps (in order):
 4. After resolution, update observation-color-catalog.ts to reflect the corrected dataset.
 
 Until these steps are complete, the catalog is candidate-canonical and Phase 4 anchor-coverage tests cannot be run end-to-end against real data.
+
+## Prerequisite: Bag-Invalidation on Configuration Change
+
+CaseSelectorService currently re-queries eligibility only when the bag is exhausted. It does not invalidate the remaining bag when configuration changes mid-bag. This must be implemented before the application satisfies the configuration-change invariant in section 19.
+
+Required steps:
+
+1. Expose a change-notification mechanism from TrainerConfigurationService (e.g., a signal revision counter or an explicit `configurationVersion` signal).
+2. CaseSelectorService captures the configuration version when it fills a bag.
+3. On each `nextCase()` call, if the current configuration version differs from the captured version, invalidate the remaining bag and refill from the updated eligible pool before returning the next case.
+4. Add tests:
+   - Disabling a group mid-bag does not cause any further case from that group to be returned.
+   - Disabling a candidate mid-bag does not cause that candidate to be returned from the remaining bag.
+   - A fresh bag after invalidation reflects only the current eligible pool.
 
 ## Remaining Plan
 
@@ -145,7 +160,11 @@ Remaining:
 
 1. Unit tests
 - Catalog uniqueness invariant (after data resolution).
-- Eligibility derivation, ordering contracts, bag behavior, lifecycle transitions, first-try-correct logic.
+- Eligibility derivation: each enabled (recognition group, PLL) contributes exactly one eligible case; deduplication by group or by PLL is absent.
+- Bag membership: a group with k candidates yields k bag entries; the same PLL in two groups yields two distinct bag entries; each eligible case appears exactly once per bag.
+- Anchor independence: color-anchor variants do not add bag entries; anchor selection occurs after case selection.
+- Configuration-change invalidation: disabling a group or candidate mid-bag prevents stale entries from being presented.
+- Ordering contracts, bag behavior, lifecycle transitions, first-try-correct logic.
 - Anchor-coverage invariant: all four anchor variants of any observation map back to the same canonical layout and recognition group.
 
 2. Component tests
