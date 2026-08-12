@@ -12,9 +12,7 @@
       <button type="button" class="done-btn" (click)="doneConfig()">Done</button>
     </div>
   } @else {
-    <button type="button" class="configure-btn" (click)="openConfig()">Configure</button>
-
-    <div class="training-row">
+    <div class="training-layout">
       <aside class="side-panel">
         <p class="stat-label">First-try correct</p>
         <p class="stat-value">{{ stats.firstTryCorrectCount() }} / {{ stats.totalRoundsCompleted() }}</p>
@@ -26,20 +24,22 @@
         }
       </aside>
 
-      <section class="cube-viewport">
-        <app-cube-renderer />
-      </section>
+      <div class="training-center">
+        <button type="button" class="configure-btn" (click)="openConfig()">Configure</button>
 
-      <div class="side-spacer"></div>
+        <section class="cube-viewport">
+          <app-cube-renderer />
+        </section>
+
+        @if (lifecycle.state() === 'idle' || lifecycle.state() === 'empty') {
+          <p class="empty-state">Enable at least one recognition group to begin training.</p>
+          <button type="button" class="start-btn" (click)="lifecycle.advance()">Start Training</button>
+        }
+
+        <section class="answer-controls">
+          <app-answer-control />
+        </section>
+      </div>
     </div>
-
-    @if (lifecycle.state() === 'idle' || lifecycle.state() === 'empty') {
-      <p class="empty-state">Enable at least one recognition group to begin training.</p>
-      <button type="button" class="start-btn" (click)="lifecycle.advance()">Start Training</button>
-    }
-
-    <section class="answer-controls">
-      <app-answer-control />
-    </section>
   }
 </main>

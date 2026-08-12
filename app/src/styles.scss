@@ -65,39 +65,55 @@ main {
   box-sizing: border-box;
 }
 
-/* ── Training row (3-column grid keeps cube centered) ── */
-
-.training-row {
-  display: grid;
-  grid-template-columns: 180px 1fr 180px;
-  gap: 16px;
-  align-items: start;
+main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 16px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Training row: sidebar + centered column ─────────── */
+
+.training-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
 }
 
 .side-panel {
+  width: 160px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   gap: 8px;
-  padding-top: 8px;
+  padding-top: 12px;
+}
+
+.training-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 480px;
 }
 
 .side-spacer {
-  /* mirrors side-panel width to keep cube centered */
+  display: none;
 }
 
 .stat-label {
   margin: 0;
   font: var(--mat-sys-label-small);
   color: var(--mat-sys-on-surface-variant);
-  text-align: right;
 }
 
 .stat-value {
   margin: 0;
   font: var(--mat-sys-headline-small);
-  text-align: right;
 }
 
 /* ── Cube viewport ───────────────────────────────────── */
