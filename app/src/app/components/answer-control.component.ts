@@ -1,8 +1,10 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, effect, OnDestroy } from '@angular/core';
 import { TrainerConfigurationService } from '../services/trainer-configuration.service';
 import { TrainerLifecycleService } from '../services/trainer-lifecycle.service';
 import { CANONICAL_RECOGNITION_GROUPS } from '../domain/recognition-groups';
 import { type PllPermutation } from '../domain/pll-catalog';
+
+const AUTO_ADVANCE_DELAY_MS = 900;
 
 @Component({
   selector: 'app-answer-control',
@@ -24,9 +26,33 @@ import { type PllPermutation } from '../domain/pll-catalog';
     }
   `,
 })
-export class AnswerControlComponent {
+export class AnswerControlComponent implements OnDestroy {
   private configService = inject(TrainerConfigurationService);
   private lifecycleService = inject(TrainerLifecycleService);
+  private autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    // Auto-advance to next case after a brief pause when correct feedback appears
+    effect(() => {
+      const feedback = this.lifecycleService.answerFeedback();
+      if (this.autoAdvanceTimer !== null) {
+        clearTimeout(this.autoAdvanceTimer);
+        this.autoAdvanceTimer = null;
+      }
+      if (feedback === 'correct') {
+        this.autoAdvanceTimer = setTimeout(() => {
+          this.autoAdvanceTimer = null;
+          this.lifecycleService.advance();
+        }, AUTO_ADVANCE_DELAY_MS);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.autoAdvanceTimer !== null) {
+      clearTimeout(this.autoAdvanceTimer);
+    }
+  }
 
   protected readonly isPresenting = computed(
     () => this.lifecycleService.state() === 'presenting',
@@ -45,8 +71,12 @@ export class AnswerControlComponent {
   });
 
   protected onChipClick(candidate: PllPermutation): void {
-    // If round already answered correctly, advance to next case instead of re-evaluating
     if (this.lifecycleService.answerFeedback() === 'correct') {
+      // Chip click during feedback window cancels the timer and advances immediately
+      if (this.autoAdvanceTimer !== null) {
+        clearTimeout(this.autoAdvanceTimer);
+        this.autoAdvanceTimer = null;
+      }
       this.lifecycleService.advance();
     } else {
       this.lifecycleService.submitAnswer(candidate);

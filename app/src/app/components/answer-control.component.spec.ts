@@ -142,4 +142,23 @@ describe('AnswerControlComponent', () => {
     const chips = fixture.nativeElement.querySelectorAll('[data-answer-chip]');
     expect(chips.length).toBe(0);
   });
+
+  it('should auto-advance after a delay when answerFeedback becomes correct', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    configService.enableGroup(group.key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    vi.useFakeTimers();
+    stubLifecycle.setFeedback('correct');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(stubLifecycle.advanceCalls).toBe(0);
+
+    vi.advanceTimersByTime(1500);
+    expect(stubLifecycle.advanceCalls).toBe(1);
+
+    vi.useRealTimers();
+  });
 });

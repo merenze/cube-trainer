@@ -1,6 +1,5 @@
 <header>
   <h1>PLL Recognition Trainer</h1>
-  <p class="stats">First-try correct: {{ stats.firstTryCorrectCount() }} / {{ stats.totalRoundsCompleted() }}</p>
 </header>
 
 <main>
@@ -15,19 +14,28 @@
   } @else {
     <button type="button" class="configure-btn" (click)="openConfig()">Configure</button>
 
-    <section class="cube-viewport">
-      <app-cube-renderer />
-    </section>
+    <div class="training-row">
+      <aside class="side-panel">
+        <p class="stat-label">First-try correct</p>
+        <p class="stat-value">{{ stats.firstTryCorrectCount() }} / {{ stats.totalRoundsCompleted() }}</p>
+
+        @if (lifecycle.answerFeedback() === 'correct') {
+          <p class="feedback feedback--correct">Correct!</p>
+        } @else if (lifecycle.answerFeedback() === 'incorrect') {
+          <p class="feedback feedback--incorrect">Incorrect</p>
+        }
+      </aside>
+
+      <section class="cube-viewport">
+        <app-cube-renderer />
+      </section>
+
+      <div class="side-spacer"></div>
+    </div>
 
     @if (lifecycle.state() === 'idle' || lifecycle.state() === 'empty') {
       <p class="empty-state">Enable at least one recognition group to begin training.</p>
       <button type="button" class="start-btn" (click)="lifecycle.advance()">Start Training</button>
-    }
-
-    @if (lifecycle.answerFeedback() === 'correct') {
-      <p class="feedback feedback--correct">Correct!</p>
-    } @else if (lifecycle.answerFeedback() === 'incorrect') {
-      <p class="feedback feedback--incorrect">Incorrect — try again.</p>
     }
 
     <section class="answer-controls">

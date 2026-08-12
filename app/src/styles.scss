@@ -49,12 +49,8 @@ header {
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
   padding: 12px 20px;
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
 
   h1 { margin: 0; font: var(--mat-sys-headline-small); }
-  .stats { margin: 0; font: var(--mat-sys-label-large); opacity: 0.85; }
 }
 
 main {
@@ -67,6 +63,41 @@ main {
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* ── Training row (3-column grid keeps cube centered) ── */
+
+.training-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 180px;
+  gap: 16px;
+  align-items: start;
+  width: 100%;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.side-spacer {
+  /* mirrors side-panel width to keep cube centered */
+}
+
+.stat-label {
+  margin: 0;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: right;
+}
+
+.stat-value {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+  text-align: right;
 }
 
 /* ── Cube viewport ───────────────────────────────────── */
