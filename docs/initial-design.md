@@ -338,25 +338,30 @@ Recognition groups are the primary training-selection unit for version 1.0.
 
 ### 7.5 PLL Observation
 
-A PLL observation represents a particular two-face view of a permutation.
+A PLL observation is the combination of a PLL permutation and a recognition group in which that permutation can appear.
 
-An observation contains or references:
+Formally, an observation is uniquely identified by:
 
 * PLL permutation
-* Left-face pattern
-* Right-face pattern
-* Viewing orientation
-* Logical cube state necessary to render the observation
+* Recognition group (ordered left-face pattern, right-face pattern)
 
-A PLL may produce multiple observations because rotating the cube around the vertical axis may expose different adjacent pairs.
+For each valid `(recognition group, PLL permutation)` combination there is exactly **one canonical normalized visible-sticker color layout** (see section 7.8).
 
-For example, `F` has three relevant pair-pattern observations:
+A PLL may appear in multiple recognition groups because rotating the cube around the vertical axis exposes different adjacent face pairs.
+
+For example, `F` has three valid observations:
 
 * `Solved | None`
 * `None | None`
 * `None | Solved`
 
-The trainer selects **observations**, not merely permutations.
+The trainer selects **observations** (recognition-group/permutation pairs), not merely permutations.
+
+**Color-anchor variants are not separate observations.** When an observation is selected for presentation, a color-anchor strategy independently selects one of the four valid rotations of that observation's canonical normalized layout (see section 7.9). The rotation does not change the recognition group, the PLL identity, or the correct answer. It only determines which physical side colors appear on the two visible faces.
+
+Conceptually:
+- *PLL observation* = (recognition group, PLL permutation) → one canonical normalized layout
+- *Presented case* = selected PLL observation + independently chosen color anchor
 
 ---
 
@@ -407,39 +412,45 @@ This keeps recognition and observation logic color-agnostic while preserving det
 
 ---
 
-### 7.8 Observation Color Layout Data
+### 7.8 Canonical Observation Color Layout
 
-Each valid `(left pattern, right pattern, permutation)` triple shall map to explicit side-index sticker layout data sufficient to color the visible stickers deterministically.
+Each valid `(recognition group, PLL permutation)` pair — i.e., each PLL observation — shall map to **exactly one** canonical normalized side-index sticker layout.
 
-Canonical storage for this mapping uses normalized side-index layouts where `Left_0` is always `0`.
+**Uniqueness invariant:** `(recognition group, PLL permutation)` → one canonical normalized layout.
 
-At minimum, this layout data shall define ordered index triples for:
+No observation shall have multiple different canonical normalized layouts. If a dataset contains more than one distinct normalized layout for the same `(recognition group, PLL permutation)` key, the conflict must be resolved by physical cube verification before that data is used in implementation.
 
-* The three visible stickers on the left face
-* The three visible stickers on the right face
+Canonical storage format for this mapping:
 
-For example, a specific triple may map to:
+* `left = (Left_0, Left_1, Left_2)` — ordered side-color indices for the three visible left-face stickers
+* `right = (Right_0, Right_1, Right_2)` — ordered side-color indices for the three visible right-face stickers
 
-* Left face indices: `(1, 3, 1)`
-* Right face indices: `(2, 4, 2)`
+Normalization rule:
 
-This mapping is canonical domain data and must not be inferred by presentation components.
+* `Left_0` is always `0` in the canonical form.
 
-Given a normalized mapping with `Left_0 = 0`, additional valid color variants are derived by adding anchor offset `a` modulo 4 to each side index.
+Anchor rotation rule:
 
-This allows canonical storage of one normalized mapping per recorded case-row while generating other anchor variants deterministically.
+* For anchor offset `a` in `{0, 1, 2, 3}`, each stored index `c` rotates to `(c + a) mod 4`.
+* This produces the four valid color presentations of the same observation without storing additional rows.
+
+This mapping is canonical domain data. Presentation components must not infer or synthesize it.
 
 ---
 
 ### 7.9 Color-Anchor Strategy
 
-A color-anchor strategy abstraction shall determine the side index used for the current left visible face.
+Once a PLL observation is selected, a color-anchor strategy independently selects which of the four valid anchor-rotations of that observation's canonical normalized layout to display.
 
-Given the left index, the right index is derived deterministically as the next sequence value.
+Applying an anchor offset `a` to the canonical layout produces an anchored sticker layout by rotating each index: `(c + a) mod 4`. This does not change:
 
-Equivalent representation is permitted via the position-`1` cursor model in section 7.7, where remaining positions are derived by fixed sequence offsets.
+* the recognition group,
+* the PLL observation identity, or
+* the correct PLL answer.
 
-For any valid structural pattern triple, there are four valid rendered index combinations corresponding to left anchors `1`, `2`, `3`, and `4`.
+The strategy may be modeled as a cursor selecting which physical color occupies the left-face anchor position, with remaining positions derived by fixed cyclic offsets.
+
+For any valid observation, there are four valid anchored color presentations corresponding to anchor offsets `0`, `1`, `2`, and `3`.
 
 The strategy abstraction allows deterministic testing and future strategy variation while preserving canonical adjacency rules.
 
@@ -611,6 +622,8 @@ In addition, each valid `(left pattern, right pattern, permutation)` triple shal
 
 This dataset is the canonical source for normalized visible-side colors.
 
+**Uniqueness invariant:** Each `(Permutation, Left pattern, Right pattern)` key shall appear exactly once with one normalized layout. Multiple rows sharing a key are a data inconsistency requiring physical cube verification and resolution.
+
 Composite key:
 
 * `Permutation`
@@ -637,7 +650,7 @@ Inversion rule:
 Data provenance note:
 
 * This dataset was extracted from diagram sources and spot-checked on a physical cube for selected rows.
-* It should be treated as candidate-canonical for implementation, with defect capture and correction handled through QA.
+* **It currently contains known inconsistencies that must be resolved before the dataset is treated as implementation-ready.** See section 10.2 for a complete list.
 
 | Perm | Left Pattern | Right Pattern | Left_0 | Left_1 | Left_2 | Right_0 | Right_1 | Right_2 |
 | ---- | ------------ | ------------- | -----: | -----: | -----: | ------: | ------: | ------: |
@@ -712,6 +725,62 @@ Data provenance note:
 | Gd   | None         | Bar outside   |      0 |      3 |      1 |       2 |       2 |       0 |
 | Gd   | Bar outside  | Bar outside   |      0 |      0 |      2 |       3 |       2 |       0 |
 | Gd   | None         | Headlights    |      0 |      3 |      1 |       2 |       0 |       2 |
+
+---
+
+### 10.2 Known Data Inconsistencies
+
+The following inconsistencies between the section 10 observation table and the section 10.1 color layout dataset must be resolved by physical cube verification before the dataset is considered implementation-ready.
+
+**Canonical layout uniqueness violations** (same `(Perm, Left, Right)` key appears with two different normalized layouts — both cannot be correct):
+
+| Triple | Layout A | Layout B |
+| ------ | -------- | -------- |
+| Ub \| Headlights \| Headlights | L=(0,2,0) R=(1,0,1) | L=(0,3,0) R=(1,0,1) |
+| Ua \| Headlights \| Headlights | L=(0,1,0) R=(1,2,1) | L=(0,1,0) R=(1,3,1) |
+| Z \| Headlights \| Headlights  | L=(0,3,0) R=(1,2,1) | L=(0,1,0) R=(1,0,1) |
+| E \| None \| None              | L=(0,3,2) R=(3,0,1) | L=(0,1,2) R=(3,2,1) |
+| Rb \| None \| Bar outside      | L=(0,3,1) R=(2,1,0) | L=(0,3,2) R=(3,0,0) |
+| Ja \| Bar outside \| Bar inside | L=(0,0,1) R=(2,2,0) | L=(0,0,2) R=(3,3,0) |
+| Jb \| Bar inside \| Bar outside | L=(0,1,1) R=(2,0,0) | L=(0,2,2) R=(3,0,0) |
+| Ga \| None \| None             | L=(0,1,2) R=(3,2,0) | L=(0,3,1) R=(2,1,2) |
+| Gc \| None \| Bar inside       | L=(0,1,2) R=(3,3,0) | L=(0,0,1) R=(2,3,2) |
+
+**Observation triple discrepancies** (triples present in section 10 but absent from section 10.1, or vice versa):
+
+Triples from section 10 not found in the layout dataset:
+
+| Perm | Left | Right | Note |
+| ---- | ---- | ----- | ---- |
+| Ua   | Solved      | Headlights  | Dataset has Ua\|Bar outside\|Headlights instead |
+| Ub   | Solved      | Headlights  | Dataset has Ub\|Bar outside\|Headlights instead |
+| Aa   | Headlights  | Bar outside | Dataset has Aa\|None\|Bar outside instead |
+| Ab   | Headlights  | None        | Dataset has Ab\|None\|None instead |
+| Ra   | Bar outside | None        | Dataset has Ra\|Bar outside\|Headlights instead |
+| Ra   | None        | Headlights  | Dataset has Ra\|None\|Bar outside instead |
+| Rb   | Bar inside  | Headlights  | Dataset has Rb\|Bar inside\|None instead |
+| Rb   | Headlights  | None        | Entirely absent from dataset |
+| V    | Bar inside  | Bar outside | Dataset has V\|Bar inside\|Bar inside instead |
+| Na   | Bar inside  | Bar outside | Dataset has Na\|Bar inside\|Solved instead |
+| Nb   | Bar outside | Bar inside  | Dataset has Nb\|Bar outside\|Headlights instead |
+| Ga   | None        | Headlights  | Dataset has a second Ga\|None\|None entry instead |
+| Gc   | Bar outside | Headlights  | Entirely absent from dataset |
+| Gd   | Headlights  | None        | Dataset has Gd\|Headlights\|Headlights instead |
+| Gd   | None        | Bar inside  | Dataset has Gd\|None\|Bar outside instead |
+| Gd   | Bar outside | None        | Dataset has Gd\|Bar outside\|Bar outside instead |
+
+Triples present in the layout dataset but not in section 10:
+
+| Perm | Left | Right | Note |
+| ---- | ---- | ----- | ---- |
+| Ua   | Bar outside | Headlights  | Possibly Ua\|Solved\|Headlights mislabeled |
+| Ub   | Bar outside | Headlights  | Possibly Ub\|Solved\|Headlights mislabeled |
+| F    | None        | Headlights  | Not listed in section 10 observation table |
+| V    | Bar inside  | Bar inside  | Section 10 lists V\|Bar inside\|Bar outside |
+| Na   | Bar inside  | Solved      | Section 10 lists Na\|Bar inside\|Bar outside |
+| Nb   | Bar outside | Headlights  | Section 10 lists Nb\|Bar outside\|Bar inside |
+
+**Resolution requirement:** All inconsistencies above must be resolved against a physical cube before the dataset is promoted to implementation-ready status. Until resolved, the dataset is candidate-canonical only. The implementation plan tracks this work explicitly.
 
 ---
 
@@ -1159,11 +1228,11 @@ Determines eligible observations, requests ordered bags from the ordering strate
 
 ### Color Anchor Strategy
 
-Determines the left visible side index for presentation.
+Operates on the canonical normalized layout of the **selected PLL observation**.
 
-The strategy may be implemented as a cursor over logical position `1`; positions `2` through `4` are derived by deterministic sequence offsets.
+Selects an anchor offset `a` in `{0, 1, 2, 3}`, then applies it uniformly to produce an anchored sticker layout: each index `c` rotates to `(c + a) mod 4`.
 
-The right visible side index is derived as the next value in the deterministic index sequence.
+Selecting a different anchor offset does not change the observation, the recognition group, or the correct answer. It only determines which physical side colors appear.
 
 The strategy is replaceable to support deterministic tests and future behavior extensions.
 
@@ -1437,7 +1506,11 @@ Which ordered pair of structural side-face patterns is being practiced.
 
 ### Observation
 
-How a specific PLL appears within a specific viewing orientation/group.
+A specific PLL permutation within a specific recognition group, associated with exactly one canonical normalized side-color layout.
+
+### Presented Case
+
+The selected PLL observation after an anchor offset has been applied to its canonical normalized layout for display. The observation identity and correct answer are unchanged by anchor selection.
 
 ### Cube State
 
@@ -1462,13 +1535,15 @@ The mechanical conversion of cube state plus appearance into visible geometry.
 The conceptual flow is:
 
 `Training configuration`
-→ `eligible observations`
+→ `eligible PLL observations`
 → `ordered bag`
-→ `selected observation`
-→ `color anchor`
-→ `resolved side-index layout`
-→ `cube state`
-→ `rendering`
+→ `selected PLL observation`
+→ `color anchor` (independently chosen; does not change observation identity)
+→ `anchored logical sticker layout`
+→ `appearance mapping`
+→ `cube rendering`
+
+The color anchor step is strictly separate from observation selection. A change in anchor offset is a presentation decision, not a case selection decision.
 
 Presentation must not reverse this dependency by becoming the owner of upstream domain state.
 
@@ -1488,24 +1563,23 @@ A typical training session is:
 8. User collapses configuration.
 9. Trainer configuration state determines the eligible observation pool.
 10. Case selector requests an ordered bag from the ordering strategy.
-11. The ordering strategy returns all currently eligible observations exactly once in randomized order.
+11. The ordering strategy returns all currently eligible PLL observations exactly once in randomized order.
 12. Trainer state stores the bag and activates its first observation.
-13. Color-anchor strategy selects the left side index.
-14. The right side index is derived as the next sequence value.
-15. Triple-to-layout data resolves visible side-index sticker layouts.
-16. Cube-state logic establishes the corresponding logical sticker state.
-17. Cube renderer maps indices to concrete colors and renders the cube.
-18. User inspects the cube.
-19. User selects a PLL answer.
-20. Answer-evaluation logic checks the selection.
-21. Feedback state updates.
-22. Display components react to the result.
-23. If the answer was incorrect, the same observation remains active.
-24. If the answer was correct on the first attempt, first-try-correct increments.
-25. If the answer was correct after an incorrect attempt, the round completes without first-try credit.
-26. The trainer advances to the next observation in the current bag.
-27. When the current bag is exhausted, the trainer requests the next ordered bag.
-28. Training continues.
+13. Color-anchor strategy independently selects an anchor offset for presenting that observation.
+14. The canonical normalized layout for the observation is rotated by the selected offset to produce the anchored sticker layout.
+15. Cube-state logic establishes the logical sticker state from the anchored layout.
+16. Cube renderer maps side-color indices to concrete colors and renders the cube.
+17. User inspects the cube.
+18. User selects a PLL answer.
+19. Answer-evaluation logic checks the selection against the active observation's PLL permutation.
+20. Feedback state updates.
+21. Display components react to the result.
+22. If the answer was incorrect, the same observation remains active (a new anchor may or may not be applied for the retry).
+23. If the answer was correct on the first attempt, first-try-correct increments.
+24. If the answer was correct after an incorrect attempt, the round completes without first-try credit.
+25. The trainer advances to the next observation in the current bag.
+26. When the current bag is exhausted, the trainer requests the next ordered bag.
+27. Training continues.
 
 ---
 
@@ -1528,7 +1602,10 @@ Version 1.0 is complete when all of the following are true.
 * All 24 canonical recognition groups from this document exist in application data.
 * Candidate lists match the canonical recognition-group table.
 * All PLL-pattern observations from this document exist in application data.
-* Valid `(left pattern, right pattern, permutation)` triples map to canonical side-index sticker layouts.
+* Each `(recognition group, PLL permutation)` pair maps to exactly one canonical normalized side-index sticker layout (`Left_0 = 0`).
+* No `(recognition group, PLL permutation)` pair has multiple conflicting canonical normalized layouts.
+* The canonical normalized layout dataset has been verified against a physical cube and all section 10.2 inconsistencies have been resolved.
+* Automated tests verify the uniqueness invariant: no duplicate keys with different layouts.
 * Recognition data is not duplicated as special-case UI logic.
 * Recognition-group keys preserve ordered left/right semantics.
 
@@ -1579,11 +1656,14 @@ Version 1.0 is complete when all of the following are true.
 
 ### Color Strategy and Layout
 
-* A color-anchor strategy abstraction determines the left side index.
-* The strategy may be represented as a cursor for logical position `1`, with positions `2` to `4` derived deterministically.
-* The right side index is derived as the next value in the deterministic repeating sequence.
-* For any valid structural triple, the system can render four valid index-anchored color combinations.
+* Observation selection is independent from color-anchor selection.
+* The color-anchor strategy operates on the canonical normalized layout of the selected PLL observation.
+* Applying an anchor offset does not change the recognition group, the observation identity, or the correct answer.
+* For any valid observation, the system can produce all four anchored color presentations (offsets 0, 1, 2, 3).
+* Automated tests verify that all four anchor variants of any observation are classified into the same recognition group.
+* Automated tests verify that the correct PLL answer is the same for all four anchor variants of any observation.
 * Triple-to-layout mapping data is explicit and consumed from domain/state data, not inferred by rendering logic.
+* The color-anchor strategy can be mocked or substituted for deterministic testing.
 
 ### Identification
 

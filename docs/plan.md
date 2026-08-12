@@ -19,72 +19,83 @@
 
 4. Canonical normalized triplet color catalog
 - Implemented typed triplet color catalog and keying in app/src/app/domain/observation-color-catalog.ts.
-- Loaded the full 71-row normalized mapping dataset from the design.
+- Loaded the 71-row candidate normalized mapping dataset extracted from design sources.
 - Implemented inverse lookup from observed rotated layout back to normalized mappings.
 - Added integrity tests for row count, normalization invariant (Left_0 == 0), index range validity, and lookup behavior.
+- NOTE: Dataset is candidate-canonical only. See section 10.2 of initial-design.md for known inconsistencies requiring physical cube verification.
 
 5. Design and plan documentation updates
-- Updated docs/initial-design.md with side-index model, cursor/anchor semantics, rotation/inversion rules, and full normalized dataset.
-- Synced session plan decisions to reflect dataset provenance and QA verification responsibility.
+- Updated docs/initial-design.md with side-index model, cursor/anchor semantics, rotation/inversion rules, normalized dataset, and full data inconsistency report.
+- Clarified domain invariant: each (recognition group, PLL) pair maps to exactly one canonical normalized layout; color-anchor variants are presentations, not separate observations.
+- Established the conceptual pipeline: training configuration → eligible PLL observations → ordered bag → selected observation → color anchor (independent) → anchored layout → appearance → rendering.
 
-6. Verification status
-- Current unit test suite passes after each completed slice.
+6. State services and selection engine (Phase 3 complete)
+- TrainerConfigurationService: owns enabled groups and per-group candidates.
+- EligibleObservationService: derives eligibility from authoritative configuration state.
+- CaseOrderingStrategy abstraction + CaseOrderingStrategy injection token.
+- ShuffledBagOrderingStrategy: Fisher-Yates shuffle, returns each eligible observation exactly once per bag.
+- CaseSelectorService: manages bag lifecycle, re-queries eligibility on bag exhaustion.
+- ColorAnchorStrategy abstraction + COLOR_ANCHOR_STRATEGY injection token.
+- TrainerLifecycleService: signals-based round lifecycle with answer evaluation and first-try tracking.
+- SessionStatisticsService: tracks first-try-correct and total rounds.
+
+7. Cube state and appearance (Phase 4 in progress)
+- CubeStateService: computed signal from lifecycle's resolvedLayout.
+- AppearanceService: fixed v1 index-to-color mapping (Red/Green/Orange/Blue sequence).
+
+## Prerequisite: Canonical Data Validation (blocks Phase 4 completion)
+
+The canonical color layout dataset contains known inconsistencies that must be resolved before Phase 4 tests can treat the dataset as implementation-ready. See docs/initial-design.md section 10.2 for the full list.
+
+Required resolution steps (in order):
+
+1. Verify conflicting duplicate rows against a physical cube.
+   - 9 triples have two different normalized layouts in the dataset. One layout is correct; the other is an error.
+   - Resolve each by physical verification and remove the incorrect row from the catalog.
+
+2. Reconcile observation triple mismatches between section 10 and section 10.1.
+   - 16 triples appear in section 10 (observation table) but not in section 10.1 (color layout dataset), or with different left/right pattern values.
+   - Each discrepancy may represent a labeling error in the observation table, a labeling error in the layout dataset, or a genuinely missing layout row.
+   - Resolve by physical verification; update whichever source is wrong.
+
+3. After resolution, add automated uniqueness validation tests to observation-color-catalog.spec.ts:
+   - No (recognition group, PLL) key appears more than once.
+   - Every key from the section 10 observation table has exactly one layout row in the catalog.
+   - Every layout row in the catalog corresponds to a key in the section 10 observation table.
+
+4. After resolution, update observation-color-catalog.ts to reflect the corrected dataset.
+
+Until these steps are complete, the catalog is candidate-canonical and Phase 4 anchor-coverage tests cannot be run end-to-end against real data.
 
 ## Remaining Plan
 
-### Phase 3 - State Services and Selection Engine
+### Phase 4 - Cube State and Rendering Pipeline (in progress)
 
-1. Implement trainer-configuration state service
-- Own enabled groups and per-group enabled candidates.
-- Support select/deselect behavior.
-- Enable canonical candidates by default when group activates.
+Completed:
+- Cube-state service (computed signal from resolved layout).
+- Appearance service (fixed v1 index-to-color mapping).
 
-2. Implement eligible-observation derivation service
-- Derive eligibility from authoritative configuration state.
-- Avoid duplicated hand-maintained pools.
+Remaining:
 
-3. Implement case-ordering strategy abstraction
-- Contract: given n eligible observations, return n ordered observations.
+1. Build display-only orthographic cube renderer component.
+   - Subscribe to CubeStateService.
+   - Map side-color indices to display colors via AppearanceService.
+   - Render yellow top face plus two adjacent side faces.
+   - Use SVG or CSS geometry; do not own authoritative state.
 
-4. Implement canonical shuffled-bag strategy
-- Return each eligible observation exactly once per bag.
-- Randomized order within the bag.
+2. Add renderer and state mapping tests.
+   - Validate yellow-top constraint.
+   - Validate side-index-to-color mapping correctness.
+   - Validate no mutation of authoritative state by renderer.
 
-5. Implement case-selector service
-- Derive eligibility, request/hold bags, serve sequentially.
-- Request next bag only when current bag is exhausted.
-- Handle empty pool safely.
+3. Add deterministic anchor-coverage tests (requires clean catalog).
+   - For each valid observation in the cleaned catalog, verify that applying each of the four anchor offsets produces a layout that normalizes back to the same canonical layout.
+   - Verify that the recognition group derived from each anchored variant matches the observation's recognition group.
+   - These tests are blocked until the canonical data inconsistencies (section 10.2) are resolved.
 
-6. Implement color-anchor strategy abstraction
-- Select left side index for presentation.
-- Derive right side index deterministically from cyclic order.
-
-7. Implement trainer lifecycle state service
-- Manage active observation, attempt-history flag, evaluation feedback, and transitions.
-
-8. Implement session statistics state service
-- Track first-try-correct and optional completed-round count.
-
-### Phase 4 - Cube State and Rendering Pipeline
-
-1. Implement cube-state service
-- Resolve active observation to logical display state using triplet layout plus anchor-derived indices.
-
-2. Separate logical state from appearance defaults
-- Keep v1 fixed appearance while preserving clear customization boundary.
-
-3. Build display-only orthographic cube renderer
-- Subscribe to cube state.
-- Map side indices to display colors.
-- Render top plus two adjacent faces.
-
-4. Add renderer and state mapping tests
-- Validate yellow-top and side-order constraints.
-- Validate side-index-to-color mapping correctness.
-- Validate no mutation of authoritative state by renderer.
-
-5. Add deterministic anchor-coverage tests
-- Prove each valid structural triplet can render all 4 anchor combinations without changing recognition identity.
+4. Wire up concrete ColorAnchorStrategy implementation for the application.
+   - Implement RandomColorAnchorStrategy: randomly selects one of the observation's four valid anchor offsets.
+   - Register in app providers.
 
 ### Phase 5 - UI Composition and Interaction
 
@@ -119,6 +130,7 @@
 
 3. Run acceptance-traceability pass
 - Trace design acceptance criteria to implementation evidence.
+- Include evidence that data inconsistencies from section 10.2 are resolved and that uniqueness tests pass.
 
 ### Phase 7 - Documentation and Handoff
 
@@ -127,11 +139,14 @@
 
 2. Add concise architecture map
 - Service/component boundaries and extension seams (appearance, timing, traditional PLL mode).
+- Note observation vs. presented-case distinction.
 
 ## Verification Focus For Remaining Work
 
 1. Unit tests
+- Catalog uniqueness invariant (after data resolution).
 - Eligibility derivation, ordering contracts, bag behavior, lifecycle transitions, first-try-correct logic.
+- Anchor-coverage invariant: all four anchor variants of any observation map back to the same canonical layout and recognition group.
 
 2. Component tests
 - Configuration interactions, empty-pool messaging, inline feedback rendering.
@@ -143,4 +158,5 @@
 - Full training flow from selection to answer handling and progression.
 
 5. CI checks
+- Lint, test, production build, deployment pipeline.
 - Lint, test, production build, deployment pipeline.
