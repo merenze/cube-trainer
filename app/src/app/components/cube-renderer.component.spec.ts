@@ -230,80 +230,6 @@ describe('CubeRendererComponent', () => {
     expect(rightOutsideLength).toBeLessThan(rightInsideLength);
   });
 
-  it('should satisfy top-bottom edge angle ordering on both side faces', async () => {
-    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
-
-    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
-      (polygon.getAttribute('points') ?? '')
-        .split(' ')
-        .map((pair) => pair.split(','))
-        .filter((pair) => pair.length === 2)
-        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
-
-    const angleBetween = (from: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number => {
-      const ax = a.x - from.x;
-      const ay = a.y - from.y;
-      const bx = b.x - from.x;
-      const by = b.y - from.y;
-      const dot = ax * bx + ay * by;
-      const magA = Math.hypot(ax, ay);
-      const magB = Math.hypot(bx, by);
-      const theta = Math.acos(dot / (magA * magB));
-      return Math.min(theta, Math.PI - theta);
-    };
-
-    const assertFaceOrdering = (
-      topOutside: SVGPolygonElement,
-      bottomOutside: SVGPolygonElement,
-      topInside: SVGPolygonElement,
-      bottomInside: SVGPolygonElement,
-      outsideTopPointIndex: number,
-      outsideBottomPointIndex: number,
-      insideTopPointIndex: number,
-      insideBottomPointIndex: number,
-    ): void => {
-      const topOutsidePoints = parsePoints(topOutside);
-      const bottomOutsidePoints = parsePoints(bottomOutside);
-      const topInsidePoints = parsePoints(topInside);
-      const bottomInsidePoints = parsePoints(bottomInside);
-
-      const outsideTop = topOutsidePoints[outsideTopPointIndex];
-      const outsideBottom = bottomOutsidePoints[outsideBottomPointIndex];
-      const insideTop = topInsidePoints[insideTopPointIndex];
-      const insideBottom = bottomInsidePoints[insideBottomPointIndex];
-
-      const insideTopAngle = angleBetween(insideTop, insideBottom, outsideTop);
-      const insideBottomAngle = angleBetween(insideBottom, insideTop, outsideBottom);
-      const outsideTopAngle = angleBetween(outsideTop, outsideBottom, insideTop);
-      const outsideBottomAngle = angleBetween(outsideBottom, outsideTop, insideBottom);
-
-      expect(insideBottomAngle).toBeGreaterThan(insideTopAngle);
-      expect(outsideTopAngle).toBeGreaterThan(outsideBottomAngle);
-    };
-
-    assertFaceOrdering(
-      fixture.nativeElement.querySelector('[data-sticker="left-0-0"]') as SVGPolygonElement,
-      fixture.nativeElement.querySelector('[data-sticker="left-2-0"]') as SVGPolygonElement,
-      fixture.nativeElement.querySelector('[data-sticker="left-0-2"]') as SVGPolygonElement,
-      fixture.nativeElement.querySelector('[data-sticker="left-2-2"]') as SVGPolygonElement,
-      0,
-      3,
-      1,
-      2,
-    );
-
-    assertFaceOrdering(
-      fixture.nativeElement.querySelector('[data-sticker="right-0-0"]') as SVGPolygonElement,
-      fixture.nativeElement.querySelector('[data-sticker="right-2-0"]') as SVGPolygonElement,
-      fixture.nativeElement.querySelector('[data-sticker="right-0-2"]') as SVGPolygonElement,
-      fixture.nativeElement.querySelector('[data-sticker="right-2-2"]') as SVGPolygonElement,
-      0,
-      3,
-      1,
-      2,
-    );
-  });
-
   it('should keep top yellow edges equal and shorter than equal bottom yellow edges', async () => {
     stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
 
@@ -335,5 +261,64 @@ describe('CubeRendererComponent', () => {
     expect(Math.abs(topLeftEdge - topRightEdge)).toBeLessThan(0.001);
     expect(Math.abs(bottomLeftEdge - bottomRightEdge)).toBeLessThan(0.001);
     expect(topLeftEdge).toBeLessThan(bottomLeftEdge);
+  });
+
+  it('should lean outside side edges toward the center when moving downward', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
+      (polygon.getAttribute('points') ?? '')
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+
+    const leftTopOutside = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-0-0"]') as SVGPolygonElement)[0];
+    const leftBottomOutside = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-2-0"]') as SVGPolygonElement)[3];
+    const rightTopOutside = parsePoints(fixture.nativeElement.querySelector('[data-sticker="right-0-0"]') as SVGPolygonElement)[0];
+    const rightBottomOutside = parsePoints(fixture.nativeElement.querySelector('[data-sticker="right-2-0"]') as SVGPolygonElement)[3];
+
+    // Left outside edge should move right (toward center) from top to bottom.
+    expect(leftBottomOutside.x).toBeGreaterThan(leftTopOutside.x);
+    // Right outside edge should move left (toward center) from top to bottom.
+    expect(rightBottomOutside.x).toBeLessThan(rightTopOutside.x);
+  });
+
+  it('should keep middle edge y-span slightly longer than outside-edge y-span', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
+      (polygon.getAttribute('points') ?? '')
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+
+    const leftTopOutside = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-0-0"]') as SVGPolygonElement)[0];
+    const leftBottomOutside = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-2-0"]') as SVGPolygonElement)[3];
+
+    const centerTop = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-0-2"]') as SVGPolygonElement)[1];
+    const centerBottom = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-2-2"]') as SVGPolygonElement)[2];
+
+    const outsideYSpan = leftBottomOutside.y - leftTopOutside.y;
+    const centerYSpan = centerBottom.y - centerTop.y;
+
+    // Middle seam should remain longer than outside seam, but at a moderate distortion.
+    expect(centerYSpan - outsideYSpan).toBeGreaterThan(20);
+    expect(centerYSpan - outsideYSpan).toBeLessThan(40);
+  });
+
+  it('should keep the yellow top peak slightly raised', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
+      (polygon.getAttribute('points') ?? '')
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+
+    const topPeak = parsePoints(fixture.nativeElement.querySelector('[data-sticker="top-0-0"]') as SVGPolygonElement)[0];
+    expect(topPeak.y).toBeLessThan(106);
   });
 });

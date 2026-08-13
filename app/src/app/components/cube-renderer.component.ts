@@ -6,13 +6,13 @@ import { type SideColorIndex } from '../domain/observation-color-layout';
 type Point = [number, number];
 
 // Explicit face anchors chosen to satisfy straight-edge and angle-order constraints.
-const TOP: Point = [165, 52];
+const TOP: Point = [165, 102];
 const LEFT_TOP: Point = [-7, 130];
 const RIGHT_TOP: Point = [337, 130];
-const FRONT_TOP: Point = [165, 216];
+const FRONT_TOP: Point = [165, 185];
 const FRONT_BOTTOM: Point = [165, 404];
-const LEFT_BOTTOM: Point = [-13, 315];
-const RIGHT_BOTTOM: Point = [343, 315];
+const LEFT_BOTTOM: Point = [1, 315];
+const RIGHT_BOTTOM: Point = [329, 315];
 
 function lerp(a: Point, b: Point, t: number): Point {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
