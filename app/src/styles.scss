@@ -204,6 +204,11 @@ main {
   color: var(--mat-sys-on-primary);
   font: var(--mat-sys-label-large);
   cursor: pointer;
+
+  &:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
 }
 
 .cancel-btn {
