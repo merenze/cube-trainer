@@ -76,6 +76,17 @@ describe('trainer configuration service', () => {
     expect(service.enabledCandidateKeys(group.key)).toContain(candidate);
   });
 
+  it('should enable the group when enabling a candidate on a disabled group', () => {
+    const group = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!;
+    const candidate = group.candidates[0];
+
+    service.enableCandidate(group.key, candidate);
+
+    expect(service.enabledGroupKeys()).toContain(group.key);
+    expect(service.enabledCandidateKeys(group.key)).toContain(candidate);
+    expect(service.enabledCandidateKeys(group.key)).not.toContain(group.candidates[1]);
+  });
+
   it('should deselect the group when its last candidate is disabled', () => {
     const group = CANONICAL_RECOGNITION_GROUPS[0];
     service.disableCandidate(group.key, group.candidates[0]);

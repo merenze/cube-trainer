@@ -8,7 +8,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule, type MatChipSelectionChange } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 
 type PatternFilter = FacePattern | 'Any';
@@ -22,7 +21,6 @@ type PatternFilter = FacePattern | 'Any';
     MatFormFieldModule,
     MatIconModule,
     MatButtonModule,
-    MatChipsModule,
     MatDividerModule,
   ],
   styles: [`
@@ -42,6 +40,8 @@ type PatternFilter = FacePattern | 'Any';
 
     .config-header {
       padding: 16px 16px 8px;
+      background: var(--mat-sys-primary);
+      color: var(--mat-sys-on-primary);
     }
 
     .config-header h2 {
@@ -51,7 +51,7 @@ type PatternFilter = FacePattern | 'Any';
 
     .config-description {
       margin: 0;
-      color: var(--mat-sys-on-surface-variant);
+      color: inherit;
       font: var(--mat-sys-body-medium);
     }
 
@@ -124,6 +124,29 @@ type PatternFilter = FacePattern | 'Any';
       padding: 8px 8px 8px 48px;
     }
 
+    .candidate-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 6px;
+    }
+
+    .candidate-chip {
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1.5px solid var(--mat-sys-outline);
+      background: var(--mat-sys-surface-container);
+      color: var(--mat-sys-on-surface);
+      font: var(--mat-sys-label-large);
+      cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+    }
+
+    .candidate-chip[aria-pressed="true"] {
+      background: var(--mat-sys-primary-container);
+      color: var(--mat-sys-on-primary-container);
+      border-color: var(--mat-sys-primary);
+    }
+
     .config-footer {
       display: flex;
       align-items: center;
@@ -138,17 +161,13 @@ type PatternFilter = FacePattern | 'Any';
       font: var(--mat-sys-body-small);
       color: var(--mat-sys-on-surface-variant);
     }
-
-    .single-case-chip {
-      pointer-events: none;
-    }
   `],
   template: `
     <div class="config-container">
-      <header class="config-header">
+      <div class="config-header">
         <h2>Configure training</h2>
         <p class="config-description">Select observation groups and optionally narrow their PLL cases.</p>
-      </header>
+      </div>
 
       <div class="config-controls">
         <div class="bulk-actions">
@@ -200,13 +219,14 @@ type PatternFilter = FacePattern | 'Any';
             <span class="group-right">{{ group.rightPattern }}</span>
             <span class="group-cases">
               @if (group.candidates.length === 1) {
-                <mat-chip-set aria-label="Case">
-                  <mat-chip class="single-case-chip"
-                            data-candidate-chip
-                            [attr.data-candidate]="group.candidates[0]">
-                    {{ group.candidates[0] }}
-                  </mat-chip>
-                </mat-chip-set>
+                <button type="button"
+                        class="candidate-chip"
+                        data-candidate-chip
+                        [attr.data-candidate]="group.candidates[0]"
+                        [attr.aria-pressed]="isGroupEnabled(group.key)"
+                        (click)="toggleCandidate(group.key, group.candidates[0])">
+                  {{ group.candidates[0] }}
+                </button>
               } @else {
                 <span class="case-count" [attr.data-case-count]="group.key">
                   {{ enabledCandidateCount(group.key) }}/{{ group.candidates.length }}
@@ -224,18 +244,18 @@ type PatternFilter = FacePattern | 'Any';
 
           @if (group.candidates.length > 1 && isGroupExpanded(group.key)) {
             <div class="group-expanded" [attr.data-expanded-group]="group.key">
-              <mat-chip-listbox multiple
-                                [attr.aria-label]="'PLL cases for ' + group.leftPattern + ' \xb7 ' + group.rightPattern">
+              <div class="candidate-chips">
                 @for (candidate of group.candidates; track candidate) {
-                  <mat-chip-option
-                    [selected]="isCandidateEnabled(group.key, candidate)"
-                    (selectionChange)="onCandidateChipChange(group.key, candidate, $event)"
-                    data-candidate-chip
-                    [attr.data-candidate]="candidate">
+                  <button type="button"
+                          class="candidate-chip"
+                          data-candidate-chip
+                          [attr.data-candidate]="candidate"
+                          [attr.aria-pressed]="isCandidateEnabled(group.key, candidate)"
+                          (click)="toggleCandidate(group.key, candidate)">
                     {{ candidate }}
-                  </mat-chip-option>
+                  </button>
                 }
-              </mat-chip-listbox>
+              </div>
             </div>
           }
 
@@ -324,17 +344,11 @@ export class TrainerConfigurationComponent {
     }
   }
 
-  protected onCandidateChipChange(
-    groupKey: RecognitionGroupKey,
-    candidate: PllPermutation,
-    event: MatChipSelectionChange,
-  ): void {
-    if (event.isUserInput) {
-      if (event.selected) {
-        this.configService.enableCandidate(groupKey, candidate);
-      } else {
-        this.configService.disableCandidate(groupKey, candidate);
-      }
+  protected toggleCandidate(groupKey: RecognitionGroupKey, candidate: PllPermutation): void {
+    if (this.isCandidateEnabled(groupKey, candidate)) {
+      this.configService.disableCandidate(groupKey, candidate);
+    } else {
+      this.configService.enableCandidate(groupKey, candidate);
     }
   }
 

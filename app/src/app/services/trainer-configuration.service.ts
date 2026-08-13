@@ -93,16 +93,23 @@ export class TrainerConfigurationService {
   }
 
   enableCandidate(groupKey: RecognitionGroupKey, candidate: PllPermutation): void {
-    let candidates = this.enabledCandidatesByGroup.get(groupKey);
-    if (!candidates) {
-      const group = this.getGroupByKey(groupKey);
-      if (!group) {
-        return;
-      }
-      candidates = new Set(group.candidates);
-      this.enabledCandidatesByGroup.set(groupKey, candidates);
+    const group = this.getGroupByKey(groupKey);
+    if (!group) {
+      return;
     }
-    candidates.add(candidate);
+
+    if (!this.enabledGroups.has(groupKey)) {
+      // Group is disabled: start fresh with only this candidate, then enable the group
+      this.enabledCandidatesByGroup.set(groupKey, new Set([candidate]));
+      this.enabledGroups.add(groupKey);
+    } else {
+      let candidates = this.enabledCandidatesByGroup.get(groupKey);
+      if (!candidates) {
+        candidates = new Set<PllPermutation>();
+        this.enabledCandidatesByGroup.set(groupKey, candidates);
+      }
+      candidates.add(candidate);
+    }
     this.bumpVersion();
   }
 

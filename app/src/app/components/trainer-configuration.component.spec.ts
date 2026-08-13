@@ -134,6 +134,48 @@ describe('TrainerConfigurationComponent', () => {
     expect(chip.textContent?.trim()).toBe(group.candidates[0]);
   });
 
+  it('should show single-candidate chip as active when group is enabled', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const group = CANONICAL_RECOGNITION_GROUPS[0]; // pre-enabled
+    const row = checkGroupRow(fixture, group.key);
+    const chip = row.querySelector('[data-candidate-chip]') as HTMLElement;
+
+    expect(chip.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('should show single-candidate chip as inactive when group is disabled', async () => {
+    configService.disableGroup(CANONICAL_RECOGNITION_GROUPS[0].key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    const row = checkGroupRow(fixture, group.key);
+    const chip = row.querySelector('[data-candidate-chip]') as HTMLElement;
+
+    expect(chip.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('should enable the group when a candidate chip is clicked on a disabled group', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[7]; // multi-candidate, not pre-enabled
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const row = checkGroupRow(fixture, group.key);
+    (row.querySelector('[data-expand-btn]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const expandedArea = fixture.nativeElement.querySelector(`[data-expanded-group="${group.key}"]`) as HTMLElement;
+    const chip = expandedArea.querySelector('[data-candidate-chip]') as HTMLButtonElement;
+    chip.click();
+    fixture.detectChanges();
+
+    expect(configService.enabledGroupKeys()).toContain(group.key);
+    expect(configService.enabledCandidateKeys(group.key)).toContain(group.candidates[0]);
+    expect(configService.enabledCandidateKeys(group.key)).not.toContain(group.candidates[1]);
+  });
+
   it('should not show an expand button for single-candidate groups', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
