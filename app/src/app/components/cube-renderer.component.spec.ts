@@ -230,7 +230,7 @@ describe('CubeRendererComponent', () => {
     expect(rightOutsideLength).toBeLessThan(rightInsideLength);
   });
 
-  it('should keep top yellow edges equal and shorter than equal bottom yellow edges', async () => {
+  it('should keep bottom yellow edges equal and average top edge shorter than average bottom edge', async () => {
     stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
 
     const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
@@ -258,9 +258,11 @@ describe('CubeRendererComponent', () => {
     const bottomLeftEdge = length(leftPeak, bottomPeak);
     const bottomRightEdge = length(rightPeak, bottomPeak);
 
-    expect(Math.abs(topLeftEdge - topRightEdge)).toBeLessThan(0.001);
+    const topAverage = (topLeftEdge + topRightEdge) / 2;
+    const bottomAverage = (bottomLeftEdge + bottomRightEdge) / 2;
+
     expect(Math.abs(bottomLeftEdge - bottomRightEdge)).toBeLessThan(0.001);
-    expect(topLeftEdge).toBeLessThan(bottomLeftEdge);
+    expect(topAverage).toBeLessThan(bottomAverage);
   });
 
   it('should lean outside side edges toward the center when moving downward', async () => {
@@ -320,5 +322,22 @@ describe('CubeRendererComponent', () => {
 
     const topPeak = parsePoints(fixture.nativeElement.querySelector('[data-sticker="top-0-0"]') as SVGPolygonElement)[0];
     expect(topPeak.y).toBeLessThan(106);
+  });
+
+  it('should shift the yellow top peak left of the center line by about half-step', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
+      (polygon.getAttribute('points') ?? '')
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+
+    const topPeak = parsePoints(fixture.nativeElement.querySelector('[data-sticker="top-0-0"]') as SVGPolygonElement)[0];
+
+    // After moving halfway back right, keep the peak left of center but around x~150.
+    expect(topPeak.x).toBeGreaterThan(144);
+    expect(topPeak.x).toBeLessThan(156);
   });
 });
