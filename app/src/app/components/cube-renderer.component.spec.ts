@@ -303,4 +303,37 @@ describe('CubeRendererComponent', () => {
       2,
     );
   });
+
+  it('should keep top yellow edges equal and shorter than equal bottom yellow edges', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
+      (polygon.getAttribute('points') ?? '')
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+
+    const length = (a: { x: number; y: number }, b: { x: number; y: number }): number =>
+      Math.hypot(b.x - a.x, b.y - a.y);
+
+    const top00 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="top-0-0"]') as SVGPolygonElement);
+    const top02 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="top-0-2"]') as SVGPolygonElement);
+    const top20 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="top-2-0"]') as SVGPolygonElement);
+    const top22 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="top-2-2"]') as SVGPolygonElement);
+
+    const topPeak = top00[0];
+    const leftPeak = top20[3];
+    const rightPeak = top02[1];
+    const bottomPeak = top22[2];
+
+    const topLeftEdge = length(topPeak, leftPeak);
+    const topRightEdge = length(topPeak, rightPeak);
+    const bottomLeftEdge = length(leftPeak, bottomPeak);
+    const bottomRightEdge = length(rightPeak, bottomPeak);
+
+    expect(Math.abs(topLeftEdge - topRightEdge)).toBeLessThan(0.001);
+    expect(Math.abs(bottomLeftEdge - bottomRightEdge)).toBeLessThan(0.001);
+    expect(topLeftEdge).toBeLessThan(bottomLeftEdge);
+  });
 });

@@ -6,7 +6,7 @@ import { type SideColorIndex } from '../domain/observation-color-layout';
 type Point = [number, number];
 
 // Explicit face anchors chosen to satisfy straight-edge and angle-order constraints.
-const TOP: Point = [165, 8];
+const TOP: Point = [165, 52];
 const LEFT_TOP: Point = [-7, 130];
 const RIGHT_TOP: Point = [337, 130];
 const FRONT_TOP: Point = [165, 216];
