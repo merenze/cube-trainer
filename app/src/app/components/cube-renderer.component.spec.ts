@@ -132,4 +132,175 @@ describe('CubeRendererComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-sticker="left-2-2"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-sticker="right-2-2"]')).not.toBeNull();
   });
+
+  it('should fit cube polygons fully inside the svg frame', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const svg = fixture.nativeElement.querySelector('svg') as SVGSVGElement;
+    const viewBox = (svg.getAttribute('viewBox') ?? '').split(' ').map((value) => Number(value));
+    const [minX, minY, width, height] = viewBox;
+    const maxX = minX + width;
+    const maxY = minY + height;
+
+    const polygons = Array.from(fixture.nativeElement.querySelectorAll('polygon')) as SVGPolygonElement[];
+    const allPoints = polygons.flatMap((polygon) => {
+      const points = polygon.getAttribute('points') ?? '';
+      return points
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+    });
+
+    const strokeHalf = 1;
+    for (const point of allPoints) {
+      expect(point.x).toBeGreaterThanOrEqual(minX + strokeHalf);
+      expect(point.x).toBeLessThanOrEqual(maxX - strokeHalf);
+      expect(point.y).toBeGreaterThanOrEqual(minY + strokeHalf);
+      expect(point.y).toBeLessThanOrEqual(maxY - strokeHalf);
+    }
+  });
+
+  it('should keep left outside and inside vertical edges straight', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
+      (polygon.getAttribute('points') ?? '')
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+
+    const isCollinear = (a: { x: number; y: number }, b: { x: number; y: number }, c: { x: number; y: number }): boolean =>
+      Math.abs((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)) < 0.5;
+
+    const left00 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-0-0"]') as SVGPolygonElement);
+    const left10 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-1-0"]') as SVGPolygonElement);
+    const left20 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-2-0"]') as SVGPolygonElement);
+
+    const left02 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-0-2"]') as SVGPolygonElement);
+    const left12 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-1-2"]') as SVGPolygonElement);
+    const left22 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-2-2"]') as SVGPolygonElement);
+
+    const outsideTop = left00[0];
+    const outsideMid1 = left00[3];
+    const outsideMid2 = left10[3];
+    const outsideBottom = left20[3];
+
+    const insideTop = left02[1];
+    const insideMid1 = left02[2];
+    const insideMid2 = left12[2];
+    const insideBottom = left22[2];
+
+    expect(isCollinear(outsideTop, outsideMid1, outsideBottom)).toBe(true);
+    expect(isCollinear(outsideTop, outsideMid2, outsideBottom)).toBe(true);
+    expect(isCollinear(insideTop, insideMid1, insideBottom)).toBe(true);
+    expect(isCollinear(insideTop, insideMid2, insideBottom)).toBe(true);
+  });
+
+  it('should render outside side edges shorter than inside side edges', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
+      (polygon.getAttribute('points') ?? '')
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+
+    const length = (a: { x: number; y: number }, b: { x: number; y: number }): number =>
+      Math.hypot(b.x - a.x, b.y - a.y);
+
+    const left00 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-0-0"]') as SVGPolygonElement);
+    const left20 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-2-0"]') as SVGPolygonElement);
+    const left02 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-0-2"]') as SVGPolygonElement);
+    const left22 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="left-2-2"]') as SVGPolygonElement);
+
+    const right00 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="right-0-0"]') as SVGPolygonElement);
+    const right20 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="right-2-0"]') as SVGPolygonElement);
+    const right02 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="right-0-2"]') as SVGPolygonElement);
+    const right22 = parsePoints(fixture.nativeElement.querySelector('[data-sticker="right-2-2"]') as SVGPolygonElement);
+
+    const leftOutsideLength = length(left00[0], left20[3]);
+    const leftInsideLength = length(left02[1], left22[2]);
+    const rightOutsideLength = length(right00[0], right20[3]);
+    const rightInsideLength = length(right02[1], right22[2]);
+
+    expect(leftOutsideLength).toBeLessThan(leftInsideLength);
+    expect(rightOutsideLength).toBeLessThan(rightInsideLength);
+  });
+
+  it('should satisfy top-bottom edge angle ordering on both side faces', async () => {
+    stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
+
+    const parsePoints = (polygon: SVGPolygonElement): Array<{ x: number; y: number }> =>
+      (polygon.getAttribute('points') ?? '')
+        .split(' ')
+        .map((pair) => pair.split(','))
+        .filter((pair) => pair.length === 2)
+        .map(([x, y]) => ({ x: Number(x), y: Number(y) }));
+
+    const angleBetween = (from: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number => {
+      const ax = a.x - from.x;
+      const ay = a.y - from.y;
+      const bx = b.x - from.x;
+      const by = b.y - from.y;
+      const dot = ax * bx + ay * by;
+      const magA = Math.hypot(ax, ay);
+      const magB = Math.hypot(bx, by);
+      const theta = Math.acos(dot / (magA * magB));
+      return Math.min(theta, Math.PI - theta);
+    };
+
+    const assertFaceOrdering = (
+      topOutside: SVGPolygonElement,
+      bottomOutside: SVGPolygonElement,
+      topInside: SVGPolygonElement,
+      bottomInside: SVGPolygonElement,
+      outsideTopPointIndex: number,
+      outsideBottomPointIndex: number,
+      insideTopPointIndex: number,
+      insideBottomPointIndex: number,
+    ): void => {
+      const topOutsidePoints = parsePoints(topOutside);
+      const bottomOutsidePoints = parsePoints(bottomOutside);
+      const topInsidePoints = parsePoints(topInside);
+      const bottomInsidePoints = parsePoints(bottomInside);
+
+      const outsideTop = topOutsidePoints[outsideTopPointIndex];
+      const outsideBottom = bottomOutsidePoints[outsideBottomPointIndex];
+      const insideTop = topInsidePoints[insideTopPointIndex];
+      const insideBottom = bottomInsidePoints[insideBottomPointIndex];
+
+      const insideTopAngle = angleBetween(insideTop, insideBottom, outsideTop);
+      const insideBottomAngle = angleBetween(insideBottom, insideTop, outsideBottom);
+      const outsideTopAngle = angleBetween(outsideTop, outsideBottom, insideTop);
+      const outsideBottomAngle = angleBetween(outsideBottom, outsideTop, insideBottom);
+
+      expect(insideBottomAngle).toBeGreaterThan(insideTopAngle);
+      expect(outsideTopAngle).toBeGreaterThan(outsideBottomAngle);
+    };
+
+    assertFaceOrdering(
+      fixture.nativeElement.querySelector('[data-sticker="left-0-0"]') as SVGPolygonElement,
+      fixture.nativeElement.querySelector('[data-sticker="left-2-0"]') as SVGPolygonElement,
+      fixture.nativeElement.querySelector('[data-sticker="left-0-2"]') as SVGPolygonElement,
+      fixture.nativeElement.querySelector('[data-sticker="left-2-2"]') as SVGPolygonElement,
+      0,
+      3,
+      1,
+      2,
+    );
+
+    assertFaceOrdering(
+      fixture.nativeElement.querySelector('[data-sticker="right-0-0"]') as SVGPolygonElement,
+      fixture.nativeElement.querySelector('[data-sticker="right-2-0"]') as SVGPolygonElement,
+      fixture.nativeElement.querySelector('[data-sticker="right-0-2"]') as SVGPolygonElement,
+      fixture.nativeElement.querySelector('[data-sticker="right-2-2"]') as SVGPolygonElement,
+      0,
+      3,
+      1,
+      2,
+    );
+  });
 });

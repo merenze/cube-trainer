@@ -3,48 +3,44 @@ import { CubeStateService } from '../services/cube-state.service';
 import { AppearanceService } from '../services/appearance.service';
 import { type SideColorIndex } from '../domain/observation-color-layout';
 
-// Isometric cube geometry — see docs/initial-design.md section 12.2.
-// Top face diamond: TOP=(165,0), RIGHT=(330,129), BOTTOM=(165,258), LEFT=(0,129)
-// Left visible face hangs from TOP to LEFT edge of diamond.
-// Right visible face hangs from RIGHT to BOTTOM edge of diamond.
-// Per-sticker vectors: step-right=(+55,+43), step-forward=(-55,+43), step-down=(0,+70).
+type Point = [number, number];
 
-const A = 55;    // horizontal isometric step per sticker
-const B = 43;    // vertical isometric step per sticker (top face)
-const SH = 70;   // sticker height on side faces
-const OX = 165;  // x-origin: top corner of the top-face diamond
+// Explicit face anchors chosen to satisfy straight-edge and angle-order constraints.
+const TOP: Point = [165, 8];
+const LEFT_TOP: Point = [-7, 130];
+const RIGHT_TOP: Point = [337, 130];
+const FRONT_TOP: Point = [165, 216];
+const FRONT_BOTTOM: Point = [165, 404];
+const LEFT_BOTTOM: Point = [-13, 315];
+const RIGHT_BOTTOM: Point = [343, 315];
 
-function pts(corners: [number, number][]): string {
-  return corners.map(([x, y]) => `${x},${y}`).join(' ');
+function lerp(a: Point, b: Point, t: number): Point {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 }
 
-function topPts(r: number, c: number): string {
-  return pts([
-    [OX + A * (c - r),     B * (c + r)    ],
-    [OX + A * (c - r + 1), B * (c + r + 1)],
-    [OX + A * (c - r),     B * (c + r + 2)],
-    [OX + A * (c - r - 1), B * (c + r + 1)],
-  ]);
+function buildFaceGrid(topLeft: Point, topRight: Point, bottomRight: Point, bottomLeft: Point): Point[][] {
+  return Array.from({ length: 4 }, (_, row) => {
+    const t = row / 3;
+    const left = lerp(topLeft, bottomLeft, t);
+    const right = lerp(topRight, bottomRight, t);
+    return Array.from({ length: 4 }, (_, col) => lerp(left, right, col / 3));
+  });
 }
 
-function leftPts(lr: number, lc: number): string {
-  // Left face hangs from the LEFT corner (0,3B) stepping toward BOTTOM corner (+A,+B) per column
-  return pts([
-    [A * lc,       3 * B + B * lc       + lr * SH       ],
-    [A * (lc + 1), 3 * B + B * (lc + 1) + lr * SH       ],
-    [A * (lc + 1), 3 * B + B * (lc + 1) + (lr + 1) * SH ],
-    [A * lc,       3 * B + B * lc       + (lr + 1) * SH ],
-  ]);
+function cellPoints(grid: Point[][], row: number, col: number): string {
+  const points = [
+    grid[row][col],
+    grid[row][col + 1],
+    grid[row + 1][col + 1],
+    grid[row + 1][col],
+  ];
+  return points.map(([x, y]) => `${x},${y}`).join(' ');
 }
 
-function rightPts(lr: number, rc: number): string {
-  return pts([
-    [OX + 3 * A - A * rc,       3 * B + B * rc       + lr * SH       ],
-    [OX + 3 * A - A * (rc + 1), 3 * B + B * (rc + 1) + lr * SH       ],
-    [OX + 3 * A - A * (rc + 1), 3 * B + B * (rc + 1) + (lr + 1) * SH ],
-    [OX + 3 * A - A * rc,       3 * B + B * rc       + (lr + 1) * SH ],
-  ]);
-}
+const TOP_GRID = buildFaceGrid(TOP, RIGHT_TOP, FRONT_TOP, LEFT_TOP);
+const LEFT_GRID = buildFaceGrid(LEFT_TOP, FRONT_TOP, FRONT_BOTTOM, LEFT_BOTTOM);
+// Right face is ordered so col=0 remains the outside edge and col=2 remains inside edge.
+const RIGHT_GRID = buildFaceGrid(RIGHT_TOP, FRONT_TOP, FRONT_BOTTOM, RIGHT_BOTTOM);
 
 interface StickerDef {
   face: 'top' | 'left' | 'right';
@@ -56,13 +52,13 @@ interface StickerDef {
 // Draw order: left -> right -> top (top last so it covers the side-face junctions)
 const ALL_STICKERS: StickerDef[] = [
   ...Array.from({ length: 9 }, (_, i): StickerDef => ({
-    face: 'left', row: Math.floor(i / 3), col: i % 3, points: leftPts(Math.floor(i / 3), i % 3),
+    face: 'left', row: Math.floor(i / 3), col: i % 3, points: cellPoints(LEFT_GRID, Math.floor(i / 3), i % 3),
   })),
   ...Array.from({ length: 9 }, (_, i): StickerDef => ({
-    face: 'right', row: Math.floor(i / 3), col: i % 3, points: rightPts(Math.floor(i / 3), i % 3),
+    face: 'right', row: Math.floor(i / 3), col: i % 3, points: cellPoints(RIGHT_GRID, Math.floor(i / 3), i % 3),
   })),
   ...Array.from({ length: 9 }, (_, i): StickerDef => ({
-    face: 'top', row: Math.floor(i / 3), col: i % 3, points: topPts(Math.floor(i / 3), i % 3),
+    face: 'top', row: Math.floor(i / 3), col: i % 3, points: cellPoints(TOP_GRID, Math.floor(i / 3), i % 3),
   })),
 ];
 
@@ -72,7 +68,7 @@ const ALL_STICKERS: StickerDef[] = [
   template: `
     @if (displayState()) {
       <svg
-        viewBox="-5 -5 340 480"
+        viewBox="-25 -10 380 490"
         xmlns="http://www.w3.org/2000/svg"
         style="width:100%;height:auto;display:block">
         @for (sticker of stickers; track sticker.face + '-' + sticker.row + '-' + sticker.col) {
