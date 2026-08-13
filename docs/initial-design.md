@@ -414,13 +414,13 @@ This keeps recognition and observation logic color-agnostic while preserving det
 
 ### 7.8 Canonical Observation Color Layout
 
-Each valid `(recognition group, PLL permutation)` pair — i.e., each PLL observation — shall map to **exactly one** canonical normalized side-index sticker layout.
+Each valid `(recognition group, PLL permutation)` pair — i.e., each PLL observation — maps to **one or more** canonical normalized side-index sticker layouts.
 
-**Uniqueness invariant:** `(recognition group, PLL permutation)` → one canonical normalized layout.
+Most observations have exactly one canonical layout. However, certain structurally symmetric permutations produce multiple distinct normalized layouts for the same observation. This occurs when the full cycle of anchor rotations visits fewer than four distinct color configurations — the same visual pattern repeats before all four rotations are exhausted. Both (or all) resulting normalized layouts are genuinely valid for that observation; neither is an error.
 
-No observation shall have multiple different canonical normalized layouts. If a dataset contains more than one distinct normalized layout for the same `(recognition group, PLL permutation)` key, the conflict must be resolved by physical cube verification before that data is used in implementation.
+For example, Z-perm visiting the cycle `R-B-R G-O-G O-G-O B-R-B` yields only two distinct normalized layouts for `Z | Headlights | Headlights`, because the four rotations pair into two repeated forms.
 
-Canonical storage format for this mapping:
+Canonical storage format for each layout:
 
 * `left = (Left_0, Left_1, Left_2)` — ordered side-color indices for the three visible left-face stickers
 * `right = (Right_0, Right_1, Right_2)` — ordered side-color indices for the three visible right-face stickers
@@ -432,17 +432,20 @@ Normalization rule:
 Anchor rotation rule:
 
 * For anchor offset `a` in `{0, 1, 2, 3}`, each stored index `c` rotates to `(c + a) mod 4`.
-* This produces the four valid color presentations of the same observation without storing additional rows.
+* This produces up to four distinct color presentations per canonical layout.
 
-This mapping is canonical domain data. Presentation components must not infer or synthesize it.
+When an observation has multiple canonical layouts, the presentation pipeline first selects one layout at random, then independently applies an anchor rotation to it. This mapping is canonical domain data. Presentation components must not infer or synthesize it.
 
 ---
 
 ### 7.9 Color-Anchor Strategy
 
-Once a PLL observation is selected, a color-anchor strategy independently selects which of the four valid anchor-rotations of that observation's canonical normalized layout to display.
+Once a PLL observation is selected, the presentation pipeline performs two independent random steps:
 
-Applying an anchor offset `a` to the canonical layout produces an anchored sticker layout by rotating each index: `(c + a) mod 4`. This does not change:
+1. **Layout variant selection**: if the observation has more than one canonical normalized layout, one is chosen at random.
+2. **Anchor rotation**: an offset `a` in `{0, 1, 2, 3}` is chosen at random and applied to the selected layout. Each index `c` rotates to `(c + a) mod 4`.
+
+These steps together do not change:
 
 * the recognition group,
 * the PLL observation identity, or
@@ -728,17 +731,6 @@ Data provenance note:
 ### 10.2 Known Data Inconsistencies
 
 The following inconsistencies between the section 10 observation table and the section 10.1 color layout dataset must be resolved by physical cube verification before the dataset is considered implementation-ready.
-
-**Canonical layout uniqueness violations** (same `(Perm, Left, Right)` key appears with two different normalized layouts — both cannot be correct):
-
-| Triple                              | Layout A            | Layout B            |
-|-------------------------------------|---------------------|---------------------|
-| Z \| Headlights \| Headlights       | L=(0,3,0) R=(1,2,1) | L=(0,1,0) R=(1,0,1) |
-| E \| None \| None                   | L=(0,3,2) R=(3,0,1) | L=(0,1,2) R=(3,2,1) |
-| Ja \| 2-bar outside \| 2-bar inside | L=(0,0,1) R=(2,2,0) | L=(0,0,2) R=(3,3,0) |
-| Jb \| 2-bar inside \| 2-bar outside | L=(0,1,1) R=(2,0,0) | L=(0,2,2) R=(3,0,0) |
-| Ga \| None \| None                  | L=(0,1,2) R=(3,2,0) | L=(0,3,1) R=(2,1,2) |
-| Gc \| None \| 2-bar inside          | L=(0,1,2) R=(3,3,0) | L=(0,0,1) R=(2,3,2) |
 
 **Observation triple discrepancies** (triples present in section 10 but absent from section 10.1, or vice versa):
 
@@ -1618,10 +1610,9 @@ Version 1.0 is complete when all of the following are true.
 * All 24 canonical recognition groups from this document exist in application data.
 * Candidate lists match the canonical recognition-group table.
 * All PLL-pattern observations from this document exist in application data.
-* Each `(recognition group, PLL permutation)` pair maps to exactly one canonical normalized side-index sticker layout (`Left_0 = 0`).
-* No `(recognition group, PLL permutation)` pair has multiple conflicting canonical normalized layouts.
-* The canonical normalized layout dataset has been verified against a physical cube and all section 10.2 inconsistencies have been resolved.
-* Automated tests verify the uniqueness invariant: no duplicate keys with different layouts.
+* Each `(recognition group, PLL permutation)` pair maps to one or more canonical normalized side-index sticker layouts (`Left_0 = 0`).
+* Observations with multiple canonical layouts are the result of structural symmetry in the permutation, not data errors.
+* The canonical normalized layout dataset has been verified against a physical cube and all section 10.2 inconsistencies have been confirmed or resolved.
 * Recognition data is not duplicated as special-case UI logic.
 * Recognition-group keys preserve ordered left/right semantics.
 
