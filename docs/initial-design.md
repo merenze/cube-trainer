@@ -671,7 +671,7 @@ Data provenance note:
 | Aa   | None         | 2-bar outside |      0 |      1 |      0 |       1 |       2 |       2 |
 | Ab   | 2-bar inside | 2-bar inside  |      0 |      2 |      2 |       3 |       3 |       0 |
 | Ab   | 2-bar outside | Headlights   |      0 |      0 |      1 |       2 |       1 |       2 |
-| Ab   | None         | None          |      0 |      3 |      0 |       1 |       0 |       2 |
+| Ab   | Headlights   | None          |      0 |      3 |      0 |       1 |       0 |       2 |
 | Ab   | None         | 2-bar outside |      0 |      3 |      1 |       2 |       0 |       0 |
 | E    | None         | None          |      0 |      3 |      2 |       3 |       0 |       1 |
 | E    | None         | None          |      0 |      1 |      2 |       3 |       2 |       1 |
@@ -679,9 +679,9 @@ Data provenance note:
 | Ra   | 2-bar outside | Headlights   |      0 |      0 |      1 |       2 |       1 |       0 |
 | Ra   | None         | None          |      0 |      3 |      2 |       3 |       1 |       0 |
 | Ra   | None         | 2-bar outside |      0 |      2 |      1 |       2 |       1 |       2 |
-| Rb   | 2-bar inside | None          |      0 |      1 |      1 |       2 |       3 |       2 |
-| Rb   | None         | None          |      0 |      1 |      0 |       1 |       0 |       2 |
-| Rb   | None         | 2-bar outside |      0 |      3 |      1 |       2 |       1 |       0 |
+| Rb   | 2-bar inside | Headlights    |      0 |      1 |      1 |       2 |       3 |       2 |
+| Rb   | Headlights   | None          |      0 |      1 |      0 |       1 |       0 |       2 |
+| Rb   | None         | None          |      0 |      3 |      1 |       2 |       1 |       0 |
 | Rb   | None         | 2-bar outside |      0 |      3 |      2 |       3 |       0 |       0 |
 | Ja   | 2-bar outside | 3-bar        |      0 |      0 |      1 |       2 |       2 |       2 |
 | Ja   | 3-bar        | 2-bar inside  |      0 |      0 |      0 |       1 |       1 |       2 |
@@ -721,10 +721,10 @@ Data provenance note:
 | Gc   | None         | None          |      0 |      2 |      1 |       2 |       3 |       0 |
 | Gc   | None         | 2-bar inside  |      0 |      1 |      2 |       3 |       3 |       0 |
 | Gc   | None         | 2-bar inside  |      0 |      0 |      1 |       2 |       3 |       2 |
-| Gd   | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       0 |       2 |
-| Gd   | None         | 2-bar outside |      0 |      3 |      1 |       2 |       2 |       0 |
-| Gd   | 2-bar outside | 2-bar outside |      0 |      0 |      2 |       3 |       2 |       0 |
-| Gd   | None         | Headlights    |      0 |      3 |      1 |       2 |       0 |       2 |
+| Gd   | Headlights   | None          |      0 |      2 |      0 |       1 |       0 |       2 |
+| Gd   | None         | 2-bar inside  |      0 |      3 |      1 |       2 |       2 |       0 |
+| Gd   | 2-bar outside | None         |      0 |      0 |      2 |       3 |       2 |       0 |
+| Gd   | None         | Headlights    |      0 |      2 |      1 |       2 |       0 |       2 |
 
 ---
 
@@ -740,7 +740,6 @@ The following inconsistencies between the section 10 observation table and the s
 | Ua \| Headlights \| Headlights | L=(0,1,0) R=(1,2,1) | L=(0,1,0) R=(1,3,1) |
 | Z \| Headlights \| Headlights  | L=(0,3,0) R=(1,2,1) | L=(0,1,0) R=(1,0,1) |
 | E \| None \| None              | L=(0,3,2) R=(3,0,1) | L=(0,1,2) R=(3,2,1) |
-| Rb \| None \| 2-bar outside    | L=(0,3,1) R=(2,1,0) | L=(0,3,2) R=(3,0,0) |
 | Ja \| 2-bar outside \| 2-bar inside | L=(0,0,1) R=(2,2,0) | L=(0,0,2) R=(3,3,0) |
 | Jb \| 2-bar inside \| 2-bar outside | L=(0,1,1) R=(2,0,0) | L=(0,2,2) R=(3,0,0) |
 | Ga \| None \| None             | L=(0,1,2) R=(3,2,0) | L=(0,3,1) R=(2,1,2) |
@@ -755,19 +754,13 @@ Triples from section 10 not found in the layout dataset:
 | Ua   | 3-bar        | Headlights  | Dataset has Ua\|2-bar outside\|Headlights instead |
 | Ub   | 3-bar        | Headlights  | Dataset has Ub\|2-bar outside\|Headlights instead |
 | Aa   | Headlights  | 2-bar outside | Dataset has Aa\|None\|2-bar outside instead |
-| Ab   | Headlights  | None        | Dataset has Ab\|None\|None instead |
 | Ra   | 2-bar outside | None      | Dataset has Ra\|2-bar outside\|Headlights instead |
 | Ra   | None        | Headlights  | Dataset has Ra\|None\|2-bar outside instead |
-| Rb   | 2-bar inside | Headlights | Dataset has Rb\|2-bar inside\|None instead |
-| Rb   | Headlights  | None        | Entirely absent from dataset |
 | V    | 2-bar inside | 2-bar outside | Dataset has V\|2-bar inside\|2-bar inside instead |
 | Na   | 2-bar inside | 2-bar outside | Dataset has Na\|2-bar inside\|3-bar instead |
 | Nb   | 2-bar outside | 2-bar inside | Dataset has Nb\|2-bar outside\|Headlights instead |
 | Ga   | None        | Headlights  | Dataset has a second Ga\|None\|None entry instead |
 | Gc   | 2-bar outside | Headlights | Entirely absent from dataset |
-| Gd   | Headlights  | None        | Dataset has Gd\|Headlights\|Headlights instead |
-| Gd   | None        | 2-bar inside | Dataset has Gd\|None\|2-bar outside instead |
-| Gd   | 2-bar outside | None      | Dataset has Gd\|2-bar outside\|2-bar outside instead |
 
 Triples present in the layout dataset but not in section 10:
 
