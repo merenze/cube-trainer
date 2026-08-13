@@ -229,14 +229,12 @@ describe('App', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    // Open config and enable a group via the chip
+    // Open config and make a change via service
     (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.configure-btn')!.click();
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const firstGroupChip: HTMLButtonElement =
-      (fixture.nativeElement as HTMLElement).querySelector('[data-group-chip]')!;
-    firstGroupChip.click();
+    configService.disableGroup(configService.enabledGroupKeys()[0]);
     fixture.detectChanges();
     expect(configService.enabledGroupKeys().length).toBeGreaterThan(0);
 

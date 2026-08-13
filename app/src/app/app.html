@@ -4,13 +4,9 @@
 
 <main>
   @if (isConfiguring()) {
-    <section class="config-panel">
-      <app-trainer-configuration />
-    </section>
-    <div class="config-actions">
-      <button type="button" class="cancel-btn" (click)="cancelConfig()">Cancel</button>
-      <button type="button" class="done-btn" [disabled]="!hasEligibleCandidates()" (click)="doneConfig()">Done</button>
-    </div>
+    <app-trainer-configuration
+      (cancelled)="cancelConfig()"
+      (applied)="doneConfig()" />
   } @else {
     <div class="training-layout">
       <aside class="side-panel">

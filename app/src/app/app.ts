@@ -21,7 +21,6 @@ export class App {
   private readonly dialog = inject(MatDialog);
 
   protected readonly isConfiguring = signal(false);
-  protected readonly hasEligibleCandidates = this.configService.hasEligibleCandidates;
   private configVersionAtOpen = 0;
   private configSnapshot: ConfigSnapshot | null = null;
 

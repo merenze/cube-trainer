@@ -1,7 +1,22 @@
 import { TestBed } from '@angular/core/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { TrainerConfigurationComponent } from './trainer-configuration.component';
 import { TrainerConfigurationService } from '../services/trainer-configuration.service';
 import { CANONICAL_RECOGNITION_GROUPS } from '../domain/recognition-groups';
+
+function checkGroupRow(fixture: any, groupKey: string): HTMLElement {
+  return fixture.nativeElement.querySelector(`[data-group-row="${groupKey}"]`) as HTMLElement;
+}
+
+function groupCheckboxInput(row: HTMLElement): HTMLInputElement {
+  return row.querySelector('input[type="checkbox"]') as HTMLInputElement;
+}
+
+function clickCheckbox(row: HTMLElement, fixture: any): void {
+  const label = row.querySelector('mat-checkbox label') as HTMLElement;
+  label.click();
+  fixture.detectChanges();
+}
 
 describe('TrainerConfigurationComponent', () => {
   let fixture: ReturnType<typeof TestBed.createComponent<TrainerConfigurationComponent>>;
@@ -10,7 +25,7 @@ describe('TrainerConfigurationComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TrainerConfigurationComponent],
-      providers: [TrainerConfigurationService],
+      providers: [TrainerConfigurationService, provideNoopAnimations()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TrainerConfigurationComponent);
@@ -21,70 +36,77 @@ describe('TrainerConfigurationComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render a chip for each of the 24 canonical recognition groups', async () => {
+  // ─── Group list rendering ───────────────────────────────────────────────
+
+  it('should render a row for each of the 24 canonical recognition groups', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const chips = fixture.nativeElement.querySelectorAll('[data-group-chip]');
-    expect(chips.length).toBe(24);
+    const rows = fixture.nativeElement.querySelectorAll('[data-group-row]');
+    expect(rows.length).toBe(24);
   });
 
-  it('should display both ordered pattern labels on each chip', async () => {
+  it('should display left and right pattern labels in each row', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const chips: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('[data-group-chip]');
-    const chip = chips[0];
     const group = CANONICAL_RECOGNITION_GROUPS[0];
+    const row = checkGroupRow(fixture, group.key);
 
-    expect(chip.textContent).toContain(group.leftPattern);
-    expect(chip.textContent).toContain(group.rightPattern);
+    expect(row.textContent).toContain(group.leftPattern);
+    expect(row.textContent).toContain(group.rightPattern);
   });
 
-  it('should show 7 chips as active by default (single-candidate groups pre-enabled)', async () => {
+  it('should show 7 checkboxes as checked by default', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const activeChips = fixture.nativeElement.querySelectorAll('[data-group-chip][aria-pressed="true"]');
-    expect(activeChips.length).toBe(7);
+    const checkedInputs = fixture.nativeElement.querySelectorAll(
+      '[data-group-row] input[type="checkbox"]:checked',
+    );
+    expect(checkedInputs.length).toBe(7);
   });
 
-  it('should mark a chip as active when its group is enabled', async () => {
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
+  it('should show checkbox as checked when group is enabled', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[7]; // first multi-candidate group
     configService.enableGroup(group.key);
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const chip = fixture.nativeElement.querySelector(`[data-group-key="${group.key}"]`);
-    expect(chip.getAttribute('aria-pressed')).toBe('true');
+    const row = checkGroupRow(fixture, group.key);
+    expect(groupCheckboxInput(row).checked).toBe(true);
   });
 
-  it('should enable a group when its chip is clicked while disabled', async () => {
-    const group = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!;
+  it('should show checkbox as unchecked when group is disabled', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[7];
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-group-key="${group.key}"]`);
-    chip.click();
+    const row = checkGroupRow(fixture, group.key);
+    expect(groupCheckboxInput(row).checked).toBe(false);
+  });
+
+  it('should enable a group when its checkbox is clicked while unchecked', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[7];
     fixture.detectChanges();
+    await fixture.whenStable();
+
+    clickCheckbox(checkGroupRow(fixture, group.key), fixture);
 
     expect(configService.enabledGroupKeys()).toContain(group.key);
   });
 
-  it('should disable a group when its chip is clicked while enabled', async () => {
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
-    configService.enableGroup(group.key);
+  it('should disable a group when its checkbox is clicked while checked', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0]; // pre-enabled
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-group-key="${group.key}"]`);
-    chip.click();
-    fixture.detectChanges();
+    clickCheckbox(checkGroupRow(fixture, group.key), fixture);
 
     expect(configService.enabledGroupKeys()).not.toContain(group.key);
   });
 
-  it('should keep other groups unchanged when one chip is toggled', async () => {
+  it('should keep other groups unchanged when one checkbox is toggled', async () => {
     configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const group0 = CANONICAL_RECOGNITION_GROUPS[0];
     const group1 = CANONICAL_RECOGNITION_GROUPS[1];
@@ -92,108 +114,245 @@ describe('TrainerConfigurationComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-group-key="${group0.key}"]`);
-    chip.click();
-    fixture.detectChanges();
+    clickCheckbox(checkGroupRow(fixture, group0.key), fixture);
 
     expect(configService.enabledGroupKeys()).toContain(group0.key);
     expect(configService.enabledGroupKeys()).toContain(group1.key);
   });
 
-  // Candidate chip tests
-  it('should show no candidate chips when no groups are enabled', async () => {
+  // ─── Single-candidate chips (always visible in row) ─────────────────────
+
+  it('should show a case chip in the row for single-candidate groups', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const group = CANONICAL_RECOGNITION_GROUPS[0]; // None | 3-bar → F
+    const row = checkGroupRow(fixture, group.key);
+    const chip = row.querySelector('[data-candidate-chip]') as HTMLElement;
+
+    expect(chip).not.toBeNull();
+    expect(chip.textContent?.trim()).toBe(group.candidates[0]);
+  });
+
+  it('should not show an expand button for single-candidate groups', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    const row = checkGroupRow(fixture, group.key);
+    expect(row.querySelector('[data-expand-btn]')).toBeNull();
+  });
+
+  // ─── Expand / collapse ───────────────────────────────────────────────────
+
+  it('should show an expand button for multi-candidate groups', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const group = CANONICAL_RECOGNITION_GROUPS[7]; // 2-bar inside | 2-bar inside → Aa, Ab
+    const row = checkGroupRow(fixture, group.key);
+    expect(row.querySelector('[data-expand-btn]')).not.toBeNull();
+  });
+
+  it('should not show candidate chips for a multi-candidate group when collapsed', async () => {
+    configService.enableGroup(CANONICAL_RECOGNITION_GROUPS[7].key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const group = CANONICAL_RECOGNITION_GROUPS[7];
+    expect(
+      fixture.nativeElement.querySelector(`[data-expanded-group="${group.key}"]`),
+    ).toBeNull();
+  });
+
+  it('should show candidate chips in expanded area when expand is clicked', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[7];
+    configService.enableGroup(group.key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const row = checkGroupRow(fixture, group.key);
+    (row.querySelector('[data-expand-btn]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const expandedArea = fixture.nativeElement.querySelector(
+      `[data-expanded-group="${group.key}"]`,
+    ) as HTMLElement;
+    expect(expandedArea).not.toBeNull();
+    expect(expandedArea.querySelectorAll('[data-candidate-chip]').length).toBe(
+      group.candidates.length,
+    );
+  });
+
+  it('should collapse an expanded group when collapse button is clicked', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[7];
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const row = checkGroupRow(fixture, group.key);
+    const expandBtn = row.querySelector('[data-expand-btn]') as HTMLButtonElement;
+    expandBtn.click();
+    fixture.detectChanges();
+
+    expandBtn.click();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector(`[data-expanded-group="${group.key}"]`),
+    ).toBeNull();
+  });
+
+  it('should reflect case count in expanded group row', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[7]; // Aa, Ab — 2 candidates
+    configService.enableGroup(group.key);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const row = checkGroupRow(fixture, group.key);
+    const countEl = row.querySelector('[data-case-count]') as HTMLElement;
+    expect(countEl.textContent?.trim()).toBe(`${group.candidates.length}/${group.candidates.length}`);
+  });
+
+  // ─── Filters ─────────────────────────────────────────────────────────────
+
+  it('should show all 24 groups with no filter applied', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelectorAll('[data-group-row]').length).toBe(24);
+  });
+
+  it('should filter rows by left pattern', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.componentInstance as any).leftFilter.set('Headlights');
+    fixture.detectChanges();
+
+    const rows: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('[data-group-row]');
+    for (const row of rows) {
+      expect(row.querySelector('.group-left')?.textContent?.trim()).toBe('Headlights');
+    }
+  });
+
+  it('should filter rows by right pattern', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.componentInstance as any).rightFilter.set('3-bar');
+    fixture.detectChanges();
+
+    const rows: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('[data-group-row]');
+    for (const row of rows) {
+      expect(row.querySelector('.group-right')?.textContent?.trim()).toBe('3-bar');
+    }
+  });
+
+  it('should show no rows when filter matches nothing', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.componentInstance as any).leftFilter.set('3-bar');
+    (fixture.componentInstance as any).rightFilter.set('3-bar');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('[data-group-row]').length).toBe(0);
+  });
+
+  // ─── Bulk actions ────────────────────────────────────────────────────────
+
+  it('should enable all filtered groups when Select all is clicked', async () => {
     configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const candidateChips = fixture.nativeElement.querySelectorAll('[data-candidate-chip]');
-    expect(candidateChips.length).toBe(0);
+    const selectAllBtn = fixture.nativeElement.querySelector('button[mat-button]:first-child') as HTMLButtonElement;
+    selectAllBtn.click();
+    fixture.detectChanges();
+
+    expect(configService.enabledGroupKeys().length).toBe(24);
   });
 
-  it('should show candidate chips for an enabled group', async () => {
+  it('should disable all filtered groups when Clear is clicked', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const clearBtn = fixture.nativeElement.querySelector('.bulk-actions button:last-child') as HTMLButtonElement;
+    clearBtn.click();
+    fixture.detectChanges();
+
+    expect(configService.enabledGroupKeys().length).toBe(0);
+  });
+
+  it('should select all only scopes to filtered groups', async () => {
     configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
-    configService.enableGroup(group.key);
+    (fixture.componentInstance as any).leftFilter.set('Headlights');
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const candidateChips = fixture.nativeElement.querySelectorAll('[data-candidate-chip]');
-    expect(candidateChips.length).toBe(group.candidates.length);
+    const selectAllBtn = fixture.nativeElement.querySelector('button[mat-button]:first-child') as HTMLButtonElement;
+    selectAllBtn.click();
+    fixture.detectChanges();
+
+    const enabledKeys = configService.enabledGroupKeys();
+    expect(enabledKeys.every((k: string) => k.startsWith('Headlights'))).toBe(true);
   });
 
-  it('should display the candidate PLL name on each candidate chip', async () => {
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
-    configService.enableGroup(group.key);
+  // ─── Summary ─────────────────────────────────────────────────────────────
+
+  it('should show correct summary text for default state', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    for (const candidate of group.candidates) {
-      const chip = fixture.nativeElement.querySelector(
-        `[data-group-key="${group.key}"] ~ [data-candidate-chip][data-candidate="${candidate}"]`,
-      ) ?? fixture.nativeElement.querySelector(`[data-candidate="${candidate}"]`);
-      expect(chip).not.toBeNull();
-    }
+    const summary = fixture.nativeElement.querySelector('[data-summary]') as HTMLElement;
+    expect(summary.textContent?.trim()).toContain('7 groups');
+    expect(summary.textContent?.trim()).toContain('7 cases');
   });
 
-  it('should show all candidate chips as enabled by default', async () => {
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
-    configService.enableGroup(group.key);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const candidateChips = fixture.nativeElement.querySelectorAll('[data-candidate-chip]');
-    for (const chip of candidateChips) {
-      expect(chip.getAttribute('aria-pressed')).toBe('true');
-    }
-  });
-
-  it('should disable a candidate when its chip is clicked while enabled', async () => {
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
-    const candidate = group.candidates[0];
-    configService.enableGroup(group.key);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-candidate="${candidate}"]`);
-    chip.click();
-    fixture.detectChanges();
-
-    expect(configService.enabledCandidateKeys(group.key)).not.toContain(candidate);
-  });
-
-  it('should re-enable a candidate when its chip is clicked while disabled', async () => {
-    const group = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!;
-    const candidate = group.candidates[0];
-    configService.enableGroup(group.key);
-    configService.disableCandidate(group.key, candidate);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-candidate="${candidate}"]`);
-    chip.click();
-    fixture.detectChanges();
-
-    expect(configService.enabledCandidateKeys(group.key)).toContain(candidate);
-  });
-
-  it('should not show candidate chips for disabled groups', async () => {
+  it('should update summary text when a group is enabled', async () => {
     configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
-    const group0 = CANONICAL_RECOGNITION_GROUPS[0];
-    const group1 = CANONICAL_RECOGNITION_GROUPS[1];
-    configService.enableGroup(group0.key);
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const allCandidateChips = fixture.nativeElement.querySelectorAll('[data-candidate-chip]');
-    expect(allCandidateChips.length).toBe(group0.candidates.length);
+    configService.enableGroup(CANONICAL_RECOGNITION_GROUPS[0].key);
+    fixture.detectChanges();
 
-    // group1 candidates must not appear
-    for (const candidate of group1.candidates) {
-      if (!group0.candidates.includes(candidate)) {
-        expect(
-          fixture.nativeElement.querySelector(`[data-candidate="${candidate}"]`),
-        ).toBeNull();
-      }
-    }
+    const summary = fixture.nativeElement.querySelector('[data-summary]') as HTMLElement;
+    expect(summary.textContent?.trim()).toContain('1 group');
+  });
+
+  // ─── Output events ───────────────────────────────────────────────────────
+
+  it('should emit cancelled when Cancel is clicked', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    let emitted = false;
+    fixture.componentInstance.cancelled.subscribe(() => (emitted = true));
+
+    (fixture.nativeElement.querySelector('.cancel-btn') as HTMLButtonElement).click();
+
+    expect(emitted).toBe(true);
+  });
+
+  it('should emit applied when Done is clicked and candidates are selected', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    let emitted = false;
+    fixture.componentInstance.applied.subscribe(() => (emitted = true));
+
+    (fixture.nativeElement.querySelector('.done-btn') as HTMLButtonElement).click();
+
+    expect(emitted).toBe(true);
+  });
+
+  it('should disable Done button when no candidates are selected', async () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const doneBtn = fixture.nativeElement.querySelector('.done-btn') as HTMLButtonElement;
+    expect(doneBtn.disabled).toBe(true);
   });
 });
