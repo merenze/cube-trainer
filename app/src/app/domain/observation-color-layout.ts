@@ -1,5 +1,8 @@
 export type SideColorIndex = 0 | 1 | 2 | 3;
 
+/** Maps each side-color index to the next index in the Red→Green→Orange→Blue cycle. */
+export type SideColorSuccessor = { readonly 0: 1; readonly 1: 2; readonly 2: 3; readonly 3: 0 };
+
 export type SideColorLayout = {
   left: [SideColorIndex, SideColorIndex, SideColorIndex];
   right: [SideColorIndex, SideColorIndex, SideColorIndex];

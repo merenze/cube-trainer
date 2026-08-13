@@ -1,7 +1,9 @@
 import { type FacePattern, type PllPermutation } from './pll-catalog';
 import {
   normalizeObservedColorLayout,
+  type SideColorIndex,
   type SideColorLayout,
+  type SideColorSuccessor,
 } from './observation-color-layout';
 
 export type { SideColorLayout };
@@ -16,12 +18,16 @@ export type ObservationColorMapping = {
   layout: SideColorLayout;
 };
 
-function createObservationColorMapping(
+// Left_2 is the inner sticker of the left face (adjacent to the right face).
+// Right_0 is the inner sticker of the right face (adjacent to the left face).
+// At their shared FRU corner, the two face colors must be adjacent in the cycle, and
+// since the right visible face is always clockwise of the left, Right_0 = successor(Left_2).
+function createObservationColorMapping<L2 extends SideColorIndex>(
   permutation: PllPermutation,
   leftPattern: FacePattern,
   rightPattern: FacePattern,
-  left: SideColorLayout['left'],
-  right: SideColorLayout['right'],
+  left: [SideColorIndex, SideColorIndex, L2],
+  right: [SideColorSuccessor[L2], SideColorIndex, SideColorIndex],
 ): ObservationColorMapping {
   return {
     permutation,
