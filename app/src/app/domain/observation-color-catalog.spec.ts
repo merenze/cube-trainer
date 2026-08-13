@@ -14,13 +14,9 @@ describe('observation color catalog', () => {
       'Headlights',
     );
 
-    expect(mappings.length).toBe(2);
+    expect(mappings.length).toBe(1);
     expect(mappings.map((mapping) => mapping.layout)).toContainEqual({
       left: [0, 2, 0],
-      right: [1, 0, 1],
-    });
-    expect(mappings.map((mapping) => mapping.layout)).toContainEqual({
-      left: [0, 3, 0],
       right: [1, 0, 1],
     });
   });
@@ -58,7 +54,7 @@ describe('observation color catalog', () => {
   });
 
   it('should include the full canonical mapping row set from the design dataset', () => {
-    expect(CANONICAL_OBSERVATION_COLOR_MAPPINGS.length).toBe(71);
+    expect(CANONICAL_OBSERVATION_COLOR_MAPPINGS.length).toBe(68);
   });
 
   it('should keep all canonical rows normalized with Left_0 equal to zero', () => {

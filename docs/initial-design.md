@@ -583,7 +583,7 @@ Each row represents one valid two-adjacent-face pattern observation.
 | F           | 3-bar        | None          |
 | F           | None         | None          |
 | F           | None         | 3-bar         |
-| V           | 2-bar inside | 2-bar outside |
+| V           | 2-bar inside | 2-bar inside  |
 | V           | 2-bar outside | None         |
 | V           | None         | None          |
 | V           | None         | 2-bar outside |
@@ -655,13 +655,11 @@ Data provenance note:
 | Perm | Left Pattern | Right Pattern | Left_0 | Left_1 | Left_2 | Right_0 | Right_1 | Right_2 |
 | ---- | ------------ | ------------- | -----: | -----: | -----: | ------: | ------: | ------: |
 | Ub   | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       0 |       1 |
-| Ub   | Headlights   | Headlights    |      0 |      3 |      0 |       1 |       0 |       1 |
 | Ub   | Headlights   | 3-bar         |      0 |      3 |      0 |       1 |       1 |       1 |
-| Ub   | 2-bar outside | Headlights   |      0 |      0 |      0 |       1 |       3 |       1 |
+| Ub   | 3-bar        | Headlights    |      0 |      0 |      0 |       1 |       3 |       1 |
 | Ua   | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       2 |       1 |
-| Ua   | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       3 |       1 |
 | Ua   | Headlights   | 3-bar         |      0 |      2 |      0 |       1 |       1 |       1 |
-| Ua   | 2-bar outside | Headlights   |      0 |      0 |      0 |       1 |       2 |       1 |
+| Ua   | 3-bar        | Headlights    |      0 |      0 |      0 |       1 |       2 |       1 |
 | Z    | Headlights   | Headlights    |      0 |      3 |      0 |       1 |       2 |       1 |
 | Z    | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       0 |       1 |
 | H    | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       3 |       1 |
@@ -696,8 +694,7 @@ Data provenance note:
 | T    | None         | 2-bar outside |      0 |      1 |      2 |       3 |       0 |       0 |
 | T    | 2-bar inside | Headlights    |      0 |      1 |      1 |       2 |       0 |       2 |
 | F    | 3-bar        | None          |      0 |      0 |      0 |       1 |       3 |       2 |
-| F    | None         | Headlights    |      0 |      2 |      1 |       2 |       1 |       0 |
-| F    | None         | None          |      0 |      3 |      2 |       3 |       2 |       0 |
+| F    | None         | None          |      0 |      2 |      1 |       2 |       1 |       0 |
 | F    | None         | 3-bar         |      0 |      3 |      1 |       2 |       2 |       2 |
 | V    | 2-bar inside | 2-bar inside  |      0 |      2 |      2 |       3 |       3 |       1 |
 | V    | 2-bar outside | None         |      0 |      0 |      2 |       3 |       2 |       1 |
@@ -707,8 +704,8 @@ Data provenance note:
 | Y    | 2-bar outside | 2-bar outside |      0 |      0 |      2 |       3 |       1 |       1 |
 | Y    | 2-bar inside | None          |      0 |      2 |      2 |       3 |       0 |       1 |
 | Y    | None         | None          |      0 |      1 |      2 |       3 |       0 |       1 |
-| Na   | 2-bar inside | 3-bar         |      0 |      2 |      2 |       3 |       1 |       1 |
-| Nb   | 2-bar outside | Headlights   |      0 |      0 |      2 |       3 |       3 |       1 |
+| Na   | 2-bar inside | 2-bar outside |      0 |      2 |      2 |       3 |       1 |       1 |
+| Nb   | 2-bar outside | 2-bar inside |      0 |      0 |      2 |       3 |       3 |       1 |
 | Ga   | Headlights   | 2-bar outside |      0 |      3 |      0 |       1 |       2 |       2 |
 | Ga   | 2-bar inside | None          |      0 |      1 |      1 |       2 |       3 |       0 |
 | Ga   | None         | None          |      0 |      1 |      2 |       3 |       2 |       0 |
@@ -736,8 +733,6 @@ The following inconsistencies between the section 10 observation table and the s
 
 | Triple | Layout A | Layout B |
 | ------ | -------- | -------- |
-| Ub \| Headlights \| Headlights | L=(0,2,0) R=(1,0,1) | L=(0,3,0) R=(1,0,1) |
-| Ua \| Headlights \| Headlights | L=(0,1,0) R=(1,2,1) | L=(0,1,0) R=(1,3,1) |
 | Z \| Headlights \| Headlights  | L=(0,3,0) R=(1,2,1) | L=(0,1,0) R=(1,0,1) |
 | E \| None \| None              | L=(0,3,2) R=(3,0,1) | L=(0,1,2) R=(3,2,1) |
 | Ja \| 2-bar outside \| 2-bar inside | L=(0,0,1) R=(2,2,0) | L=(0,0,2) R=(3,3,0) |
@@ -751,27 +746,11 @@ Triples from section 10 not found in the layout dataset:
 
 | Perm | Left | Right | Note |
 | ---- | ---- | ----- | ---- |
-| Ua   | 3-bar        | Headlights  | Dataset has Ua\|2-bar outside\|Headlights instead |
-| Ub   | 3-bar        | Headlights  | Dataset has Ub\|2-bar outside\|Headlights instead |
 | Aa   | Headlights  | 2-bar outside | Dataset has Aa\|None\|2-bar outside instead |
 | Ra   | 2-bar outside | None      | Dataset has Ra\|2-bar outside\|Headlights instead |
 | Ra   | None        | Headlights  | Dataset has Ra\|None\|2-bar outside instead |
-| V    | 2-bar inside | 2-bar outside | Dataset has V\|2-bar inside\|2-bar inside instead |
-| Na   | 2-bar inside | 2-bar outside | Dataset has Na\|2-bar inside\|3-bar instead |
-| Nb   | 2-bar outside | 2-bar inside | Dataset has Nb\|2-bar outside\|Headlights instead |
 | Ga   | None        | Headlights  | Dataset has a second Ga\|None\|None entry instead |
 | Gc   | 2-bar outside | Headlights | Entirely absent from dataset |
-
-Triples present in the layout dataset but not in section 10:
-
-| Perm | Left | Right | Note |
-| ---- | ---- | ----- | ---- |
-| Ua   | 2-bar outside | Headlights  | Possibly Ua\|3-bar\|Headlights mislabeled |
-| Ub   | 2-bar outside | Headlights  | Possibly Ub\|3-bar\|Headlights mislabeled |
-| F    | None        | Headlights  | Not listed in section 10 observation table |
-| V    | 2-bar inside | 2-bar inside | Section 10 lists V\|2-bar inside\|2-bar outside |
-| Na   | 2-bar inside | 3-bar       | Section 10 lists Na\|2-bar inside\|2-bar outside |
-| Nb   | 2-bar outside | Headlights | Section 10 lists Nb\|2-bar outside\|2-bar inside |
 
 **Resolution requirement:** All inconsistencies above must be resolved against a physical cube before the dataset is promoted to implementation-ready status. Until resolved, the dataset is candidate-canonical only. The implementation plan tracks this work explicitly.
 
