@@ -27,8 +27,11 @@
           <app-cube-renderer />
         </section>
 
-        @if (lifecycle.state() === 'idle' || lifecycle.state() === 'empty') {
+        @if (!hasEligibleCandidates()) {
           <p class="empty-state">Enable at least one recognition group to begin training.</p>
+        }
+
+        @if ((lifecycle.state() === 'idle' || lifecycle.state() === 'empty') && hasEligibleCandidates()) {
           <button type="button" class="start-btn" (click)="lifecycle.advance()">Start Training</button>
         }
 

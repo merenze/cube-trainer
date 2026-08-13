@@ -77,8 +77,10 @@ describe('App', () => {
     expect(compiled.querySelector('app-cube-renderer')).not.toBeNull();
   });
 
-  it('should show empty-state message when lifecycle is idle', async () => {
+  it('should show empty-state message when no recognition groups are enabled', async () => {
     const fixture = TestBed.createComponent(App);
+    const configService = TestBed.inject(TrainerConfigurationService);
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -86,10 +88,8 @@ describe('App', () => {
     expect(compiled.textContent).toContain('Enable at least one recognition group');
   });
 
-  it('should not show empty-state message when lifecycle is presenting', async () => {
+  it('should not show empty-state message when recognition groups are enabled', async () => {
     const fixture = TestBed.createComponent(App);
-    const stub = TestBed.inject(TrainerLifecycleService) as unknown as StubTrainerLifecycleService;
-    stub.setState('presenting');
     fixture.detectChanges();
     await fixture.whenStable();
 
