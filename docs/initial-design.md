@@ -12,8 +12,8 @@ Unlike a traditional PLL trainer, the application is organized around **recognit
 Examples include:
 
 * `Headlights | Headlights`
-* `None | Bar inside`
-* `Bar outside | Solved`
+* `None | 2-bar inside`
+* `2-bar outside | 3-bar`
 
 Each recognition group has one or more PLL permutations that may produce that visible pattern combination.
 
@@ -271,20 +271,20 @@ A face pattern represents the visually obvious pair structure on one visible sid
 Version 1.0 defines exactly five pattern values:
 
 * `Headlights`
-* `Bar inside`
-* `Bar outside`
+* `2-bar inside`
+* `2-bar outside`
 * `None`
-* `Solved`
+* `3-bar`
 
 #### Headlights
 
 The two visible corner stickers on that side match one another.
 
-#### Bar inside
+#### 2-bar inside
 
 A matching pair appears on the side of the face adjacent to the other visible face.
 
-#### Bar outside
+#### 2-bar outside
 
 A matching pair appears on the side of the face away from the other visible face.
 
@@ -292,17 +292,17 @@ A matching pair appears on the side of the face away from the other visible face
 
 The face contains none of the structural pair patterns recognized by the classification system.
 
-#### Solved
+#### 3-bar
 
 All three visible stickers on that side match.
 
 The recognition system treats left and right independently. Therefore:
 
-`Bar inside | Headlights`
+`2-bar inside | Headlights`
 
 and:
 
-`Headlights | Bar inside`
+`Headlights | 2-bar inside`
 
 are distinct recognition groups.
 
@@ -351,9 +351,9 @@ A PLL may appear in multiple recognition groups because rotating the cube around
 
 For example, `F` has three valid observations:
 
-* `Solved | None`
+* `3-bar | None`
 * `None | None`
-* `None | Solved`
+* `None | 3-bar`
 
 The trainer selects **observations** (recognition-group/permutation pairs), not merely permutations.
 
@@ -497,29 +497,29 @@ It shall be represented explicitly in the application rather than reconstructed 
 
 | Left pattern | Right pattern | Candidates                 |
 | ------------ | ------------- | -------------------------- |
-| None         | Solved        | F                          |
-| Solved       | None          | F                          |
-| Bar outside  | Solved        | Ja                         |
-| Solved       | Bar inside    | Ja                         |
-| Bar inside   | Solved        | Jb                         |
-| Solved       | Bar outside   | Jb                         |
-| Bar outside  | Bar outside   | Y                          |
-| Bar inside   | Bar inside    | Aa, Ab                     |
-| Headlights   | Bar outside   | Aa, Ga                     |
-| Bar outside  | Headlights    | Ab, Gc                     |
-| Bar inside   | None          | Ga, Y                      |
-| Bar outside  | Bar inside    | Ja, Nb                     |
-| Bar inside   | Bar outside   | Na, V                      |
-| Headlights   | Bar inside    | Ra, T                      |
-| Bar inside   | Headlights    | Rb, T                      |
-| Headlights   | Solved        | Ua, Ub                     |
-| Solved       | Headlights    | Ua, Ub                     |
-| None         | Bar inside    | Gc, Gd, Y                  |
+| None         | 3-bar         | F                          |
+| 3-bar        | None          | F                          |
+| 2-bar outside | 3-bar        | Ja                         |
+| 3-bar        | 2-bar inside  | Ja                         |
+| 2-bar inside  | 3-bar        | Jb                         |
+| 3-bar        | 2-bar outside | Jb                         |
+| 2-bar outside | 2-bar outside | Y                          |
+| 2-bar inside  | 2-bar inside  | Aa, Ab                     |
+| Headlights   | 2-bar outside | Aa, Ga                     |
+| 2-bar outside | Headlights   | Ab, Gc                     |
+| 2-bar inside  | None         | Ga, Y                      |
+| 2-bar outside | 2-bar inside  | Ja, Nb                     |
+| 2-bar inside  | 2-bar outside | Na, V                      |
+| Headlights   | 2-bar inside  | Ra, T                      |
+| 2-bar inside  | Headlights   | Rb, T                      |
+| Headlights   | 3-bar         | Ua, Ub                     |
+| 3-bar        | Headlights    | Ua, Ub                     |
+| None         | 2-bar inside  | Gc, Gd, Y                  |
 | Headlights   | Headlights    | H, Ua, Ub, Z               |
 | None         | Headlights    | Aa, Ga, Gb, Gd, Ra         |
-| Bar outside  | None          | Aa, Gd, Ra, T, V           |
+| 2-bar outside | None         | Aa, Gd, Ra, T, V           |
 | Headlights   | None          | Ab, Gb, Gc, Gd, Rb         |
-| None         | Bar outside   | Ab, Gb, Rb, T, V           |
+| None         | 2-bar outside | Ab, Gb, Rb, T, V           |
 | None         | None          | E, F, Ga, Gc, Ra, Rb, V, Y |
 
 There are therefore **24 recognition groups** in version 1.0.
@@ -546,68 +546,68 @@ Each row represents one valid two-adjacent-face pattern observation.
 | Permutation | Left pattern | Right pattern |
 | ----------- | ------------ | ------------- |
 | Ua          | Headlights   | Headlights    |
-| Ua          | Headlights   | Solved        |
-| Ua          | Solved       | Headlights    |
+| Ua          | Headlights   | 3-bar         |
+| Ua          | 3-bar        | Headlights    |
 | Ub          | Headlights   | Headlights    |
-| Ub          | Headlights   | Solved        |
-| Ub          | Solved       | Headlights    |
+| Ub          | Headlights   | 3-bar         |
+| Ub          | 3-bar        | Headlights    |
 | Z           | Headlights   | Headlights    |
 | H           | Headlights   | Headlights    |
-| Aa          | Bar inside   | Bar inside    |
-| Aa          | Bar outside  | None          |
+| Aa          | 2-bar inside | 2-bar inside  |
+| Aa          | 2-bar outside | None         |
 | Aa          | None         | Headlights    |
-| Aa          | Headlights   | Bar outside   |
-| Ab          | Bar inside   | Bar inside    |
-| Ab          | Bar outside  | Headlights    |
+| Aa          | Headlights   | 2-bar outside |
+| Ab          | 2-bar inside | 2-bar inside  |
+| Ab          | 2-bar outside | Headlights   |
 | Ab          | Headlights   | None          |
-| Ab          | None         | Bar outside   |
+| Ab          | None         | 2-bar outside |
 | E           | None         | None          |
-| Ra          | Headlights   | Bar inside    |
-| Ra          | Bar outside  | None          |
+| Ra          | Headlights   | 2-bar inside  |
+| Ra          | 2-bar outside | None         |
 | Ra          | None         | None          |
 | Ra          | None         | Headlights    |
-| Rb          | Bar inside   | Headlights    |
+| Rb          | 2-bar inside | Headlights    |
 | Rb          | Headlights   | None          |
 | Rb          | None         | None          |
-| Rb          | None         | Bar outside   |
-| Ja          | Bar outside  | Solved        |
-| Ja          | Solved       | Bar inside    |
-| Ja          | Bar outside  | Bar inside    |
-| Jb          | Solved       | Bar outside   |
-| Jb          | Bar inside   | Bar outside   |
-| Jb          | Bar inside   | Solved        |
-| T           | Headlights   | Bar inside    |
-| T           | Bar outside  | None          |
-| T           | None         | Bar outside   |
-| T           | Bar inside   | Headlights    |
-| F           | Solved       | None          |
+| Rb          | None         | 2-bar outside |
+| Ja          | 2-bar outside | 3-bar        |
+| Ja          | 3-bar        | 2-bar inside  |
+| Ja          | 2-bar outside | 2-bar inside |
+| Jb          | 3-bar        | 2-bar outside |
+| Jb          | 2-bar inside | 2-bar outside |
+| Jb          | 2-bar inside | 3-bar         |
+| T           | Headlights   | 2-bar inside  |
+| T           | 2-bar outside | None         |
+| T           | None         | 2-bar outside |
+| T           | 2-bar inside | Headlights    |
+| F           | 3-bar        | None          |
 | F           | None         | None          |
-| F           | None         | Solved        |
-| V           | Bar inside   | Bar outside   |
-| V           | Bar outside  | None          |
+| F           | None         | 3-bar         |
+| V           | 2-bar inside | 2-bar outside |
+| V           | 2-bar outside | None         |
 | V           | None         | None          |
-| V           | None         | Bar outside   |
-| Y           | None         | Bar inside    |
-| Y           | Bar outside  | Bar outside   |
-| Y           | Bar inside   | None          |
+| V           | None         | 2-bar outside |
+| Y           | None         | 2-bar inside  |
+| Y           | 2-bar outside | 2-bar outside |
+| Y           | 2-bar inside | None          |
 | Y           | None         | None          |
-| Na          | Bar inside   | Bar outside   |
-| Nb          | Bar outside  | Bar inside    |
-| Ga          | Headlights   | Bar outside   |
-| Ga          | Bar inside   | None          |
+| Na          | 2-bar inside | 2-bar outside |
+| Nb          | 2-bar outside | 2-bar inside |
+| Ga          | Headlights   | 2-bar outside |
+| Ga          | 2-bar inside | None          |
 | Ga          | None         | None          |
 | Ga          | None         | Headlights    |
-| Gb          | None         | Bar outside   |
-| Gb          | Bar inside   | None          |
+| Gb          | None         | 2-bar outside |
+| Gb          | 2-bar inside | None          |
 | Gb          | None         | Headlights    |
 | Gb          | Headlights   | None          |
 | Gc          | Headlights   | None          |
 | Gc          | None         | None          |
-| Gc          | None         | Bar inside    |
-| Gc          | Bar outside  | Headlights    |
+| Gc          | None         | 2-bar inside  |
+| Gc          | 2-bar outside | Headlights   |
 | Gd          | Headlights   | None          |
-| Gd          | None         | Bar inside    |
-| Gd          | Bar outside  | None          |
+| Gd          | None         | 2-bar inside  |
+| Gd          | 2-bar outside | None         |
 | Gd          | None         | Headlights    |
 
 This table is canonical application data for version 1.0.
@@ -656,74 +656,74 @@ Data provenance note:
 | ---- | ------------ | ------------- | -----: | -----: | -----: | ------: | ------: | ------: |
 | Ub   | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       0 |       1 |
 | Ub   | Headlights   | Headlights    |      0 |      3 |      0 |       1 |       0 |       1 |
-| Ub   | Headlights   | Solved        |      0 |      3 |      0 |       1 |       1 |       1 |
-| Ub   | Bar outside  | Headlights    |      0 |      0 |      0 |       1 |       3 |       1 |
+| Ub   | Headlights   | 3-bar         |      0 |      3 |      0 |       1 |       1 |       1 |
+| Ub   | 2-bar outside | Headlights   |      0 |      0 |      0 |       1 |       3 |       1 |
 | Ua   | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       2 |       1 |
 | Ua   | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       3 |       1 |
-| Ua   | Headlights   | Solved        |      0 |      2 |      0 |       1 |       1 |       1 |
-| Ua   | Bar outside  | Headlights    |      0 |      0 |      0 |       1 |       2 |       1 |
+| Ua   | Headlights   | 3-bar         |      0 |      2 |      0 |       1 |       1 |       1 |
+| Ua   | 2-bar outside | Headlights   |      0 |      0 |      0 |       1 |       2 |       1 |
 | Z    | Headlights   | Headlights    |      0 |      3 |      0 |       1 |       2 |       1 |
 | Z    | Headlights   | Headlights    |      0 |      1 |      0 |       1 |       0 |       1 |
 | H    | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       3 |       1 |
-| Aa   | Bar inside   | Bar inside    |      0 |      1 |      1 |       2 |       2 |       0 |
-| Aa   | Bar outside  | None          |      0 |      0 |      2 |       3 |       1 |       0 |
+| Aa   | 2-bar inside | 2-bar inside  |      0 |      1 |      1 |       2 |       2 |       0 |
+| Aa   | 2-bar outside | None         |      0 |      0 |      2 |       3 |       1 |       0 |
 | Aa   | None         | Headlights    |      0 |      2 |      1 |       2 |       3 |       2 |
-| Aa   | None         | Bar outside   |      0 |      1 |      0 |       1 |       2 |       2 |
-| Ab   | Bar inside   | Bar inside    |      0 |      2 |      2 |       3 |       3 |       0 |
-| Ab   | Bar outside  | Headlights    |      0 |      0 |      1 |       2 |       1 |       2 |
+| Aa   | None         | 2-bar outside |      0 |      1 |      0 |       1 |       2 |       2 |
+| Ab   | 2-bar inside | 2-bar inside  |      0 |      2 |      2 |       3 |       3 |       0 |
+| Ab   | 2-bar outside | Headlights   |      0 |      0 |      1 |       2 |       1 |       2 |
 | Ab   | None         | None          |      0 |      3 |      0 |       1 |       0 |       2 |
-| Ab   | None         | Bar outside   |      0 |      3 |      1 |       2 |       0 |       0 |
+| Ab   | None         | 2-bar outside |      0 |      3 |      1 |       2 |       0 |       0 |
 | E    | None         | None          |      0 |      3 |      2 |       3 |       0 |       1 |
 | E    | None         | None          |      0 |      1 |      2 |       3 |       2 |       1 |
-| Ra   | Headlights   | Bar inside    |      0 |      3 |      0 |       1 |       1 |       2 |
-| Ra   | Bar outside  | Headlights    |      0 |      0 |      1 |       2 |       1 |       0 |
+| Ra   | Headlights   | 2-bar inside  |      0 |      3 |      0 |       1 |       1 |       2 |
+| Ra   | 2-bar outside | Headlights   |      0 |      0 |      1 |       2 |       1 |       0 |
 | Ra   | None         | None          |      0 |      3 |      2 |       3 |       1 |       0 |
-| Ra   | None         | Bar outside   |      0 |      2 |      1 |       2 |       1 |       2 |
-| Rb   | Bar inside   | None          |      0 |      1 |      1 |       2 |       3 |       2 |
+| Ra   | None         | 2-bar outside |      0 |      2 |      1 |       2 |       1 |       2 |
+| Rb   | 2-bar inside | None          |      0 |      1 |      1 |       2 |       3 |       2 |
 | Rb   | None         | None          |      0 |      1 |      0 |       1 |       0 |       2 |
-| Rb   | None         | Bar outside   |      0 |      3 |      1 |       2 |       1 |       0 |
-| Rb   | None         | Bar outside   |      0 |      3 |      2 |       3 |       0 |       0 |
-| Ja   | Bar outside  | Solved        |      0 |      0 |      1 |       2 |       2 |       2 |
-| Ja   | Solved       | Bar inside    |      0 |      0 |      0 |       1 |       1 |       2 |
-| Ja   | Bar outside  | Bar inside    |      0 |      0 |      1 |       2 |       2 |       0 |
-| Ja   | Bar outside  | Bar inside    |      0 |      0 |      2 |       3 |       3 |       0 |
-| Jb   | Solved       | Bar outside   |      0 |      0 |      0 |       1 |       2 |       2 |
-| Jb   | Bar inside   | Bar outside   |      0 |      1 |      1 |       2 |       0 |       0 |
-| Jb   | Bar inside   | Bar outside   |      0 |      2 |      2 |       3 |       0 |       0 |
-| Jb   | Bar inside   | Solved        |      0 |      1 |      1 |       2 |       2 |       2 |
-| T    | Headlights   | Bar inside    |      0 |      2 |      0 |       1 |       1 |       2 |
-| T    | Bar outside  | None          |      0 |      0 |      1 |       2 |       3 |       0 |
-| T    | None         | Bar outside   |      0 |      1 |      2 |       3 |       0 |       0 |
-| T    | Bar inside   | Headlights    |      0 |      1 |      1 |       2 |       0 |       2 |
-| F    | Solved       | None          |      0 |      0 |      0 |       1 |       3 |       2 |
+| Rb   | None         | 2-bar outside |      0 |      3 |      1 |       2 |       1 |       0 |
+| Rb   | None         | 2-bar outside |      0 |      3 |      2 |       3 |       0 |       0 |
+| Ja   | 2-bar outside | 3-bar        |      0 |      0 |      1 |       2 |       2 |       2 |
+| Ja   | 3-bar        | 2-bar inside  |      0 |      0 |      0 |       1 |       1 |       2 |
+| Ja   | 2-bar outside | 2-bar inside |      0 |      0 |      1 |       2 |       2 |       0 |
+| Ja   | 2-bar outside | 2-bar inside |      0 |      0 |      2 |       3 |       3 |       0 |
+| Jb   | 3-bar        | 2-bar outside |      0 |      0 |      0 |       1 |       2 |       2 |
+| Jb   | 2-bar inside | 2-bar outside |      0 |      1 |      1 |       2 |       0 |       0 |
+| Jb   | 2-bar inside | 2-bar outside |      0 |      2 |      2 |       3 |       0 |       0 |
+| Jb   | 2-bar inside | 3-bar         |      0 |      1 |      1 |       2 |       2 |       2 |
+| T    | Headlights   | 2-bar inside  |      0 |      2 |      0 |       1 |       1 |       2 |
+| T    | 2-bar outside | None         |      0 |      0 |      1 |       2 |       3 |       0 |
+| T    | None         | 2-bar outside |      0 |      1 |      2 |       3 |       0 |       0 |
+| T    | 2-bar inside | Headlights    |      0 |      1 |      1 |       2 |       0 |       2 |
+| F    | 3-bar        | None          |      0 |      0 |      0 |       1 |       3 |       2 |
 | F    | None         | Headlights    |      0 |      2 |      1 |       2 |       1 |       0 |
 | F    | None         | None          |      0 |      3 |      2 |       3 |       2 |       0 |
-| F    | None         | Solved        |      0 |      3 |      1 |       2 |       2 |       2 |
-| V    | Bar inside   | Bar inside    |      0 |      2 |      2 |       3 |       3 |       1 |
-| V    | Bar outside  | None          |      0 |      0 |      2 |       3 |       2 |       1 |
+| F    | None         | 3-bar         |      0 |      3 |      1 |       2 |       2 |       2 |
+| V    | 2-bar inside | 2-bar inside  |      0 |      2 |      2 |       3 |       3 |       1 |
+| V    | 2-bar outside | None         |      0 |      0 |      2 |       3 |       2 |       1 |
 | V    | None         | None          |      0 |      3 |      2 |       3 |       2 |       1 |
-| V    | None         | Bar outside   |      0 |      3 |      2 |       3 |       1 |       1 |
-| Y    | None         | Bar inside    |      0 |      1 |      2 |       3 |       3 |       1 |
-| Y    | Bar outside  | Bar outside   |      0 |      0 |      2 |       3 |       1 |       1 |
-| Y    | Bar inside   | None          |      0 |      2 |      2 |       3 |       0 |       1 |
+| V    | None         | 2-bar outside |      0 |      3 |      2 |       3 |       1 |       1 |
+| Y    | None         | 2-bar inside  |      0 |      1 |      2 |       3 |       3 |       1 |
+| Y    | 2-bar outside | 2-bar outside |      0 |      0 |      2 |       3 |       1 |       1 |
+| Y    | 2-bar inside | None          |      0 |      2 |      2 |       3 |       0 |       1 |
 | Y    | None         | None          |      0 |      1 |      2 |       3 |       0 |       1 |
-| Na   | Bar inside   | Solved        |      0 |      2 |      2 |       3 |       1 |       1 |
-| Nb   | Bar outside  | Headlights    |      0 |      0 |      2 |       3 |       3 |       1 |
-| Ga   | Headlights   | Bar outside   |      0 |      3 |      0 |       1 |       2 |       2 |
-| Ga   | Bar inside   | None          |      0 |      1 |      1 |       2 |       3 |       0 |
+| Na   | 2-bar inside | 3-bar         |      0 |      2 |      2 |       3 |       1 |       1 |
+| Nb   | 2-bar outside | Headlights   |      0 |      0 |      2 |       3 |       3 |       1 |
+| Ga   | Headlights   | 2-bar outside |      0 |      3 |      0 |       1 |       2 |       2 |
+| Ga   | 2-bar inside | None          |      0 |      1 |      1 |       2 |       3 |       0 |
 | Ga   | None         | None          |      0 |      1 |      2 |       3 |       2 |       0 |
 | Ga   | None         | None          |      0 |      3 |      1 |       2 |       1 |       2 |
-| Gb   | None         | Bar outside   |      0 |      2 |      1 |       2 |       0 |       0 |
-| Gb   | Bar inside   | None          |      0 |      2 |      2 |       3 |       1 |       0 |
+| Gb   | None         | 2-bar outside |      0 |      2 |      1 |       2 |       0 |       0 |
+| Gb   | 2-bar inside | None          |      0 |      2 |      2 |       3 |       1 |       0 |
 | Gb   | None         | Headlights    |      0 |      2 |      1 |       2 |       0 |       2 |
 | Gb   | Headlights   | None          |      0 |      2 |      0 |       1 |       3 |       2 |
 | Gc   | Headlights   | None          |      0 |      1 |      0 |       1 |       3 |       2 |
 | Gc   | None         | None          |      0 |      2 |      1 |       2 |       3 |       0 |
-| Gc   | None         | Bar inside    |      0 |      1 |      2 |       3 |       3 |       0 |
-| Gc   | None         | Bar inside    |      0 |      0 |      1 |       2 |       3 |       2 |
+| Gc   | None         | 2-bar inside  |      0 |      1 |      2 |       3 |       3 |       0 |
+| Gc   | None         | 2-bar inside  |      0 |      0 |      1 |       2 |       3 |       2 |
 | Gd   | Headlights   | Headlights    |      0 |      2 |      0 |       1 |       0 |       2 |
-| Gd   | None         | Bar outside   |      0 |      3 |      1 |       2 |       2 |       0 |
-| Gd   | Bar outside  | Bar outside   |      0 |      0 |      2 |       3 |       2 |       0 |
+| Gd   | None         | 2-bar outside |      0 |      3 |      1 |       2 |       2 |       0 |
+| Gd   | 2-bar outside | 2-bar outside |      0 |      0 |      2 |       3 |       2 |       0 |
 | Gd   | None         | Headlights    |      0 |      3 |      1 |       2 |       0 |       2 |
 
 ---
@@ -740,11 +740,11 @@ The following inconsistencies between the section 10 observation table and the s
 | Ua \| Headlights \| Headlights | L=(0,1,0) R=(1,2,1) | L=(0,1,0) R=(1,3,1) |
 | Z \| Headlights \| Headlights  | L=(0,3,0) R=(1,2,1) | L=(0,1,0) R=(1,0,1) |
 | E \| None \| None              | L=(0,3,2) R=(3,0,1) | L=(0,1,2) R=(3,2,1) |
-| Rb \| None \| Bar outside      | L=(0,3,1) R=(2,1,0) | L=(0,3,2) R=(3,0,0) |
-| Ja \| Bar outside \| Bar inside | L=(0,0,1) R=(2,2,0) | L=(0,0,2) R=(3,3,0) |
-| Jb \| Bar inside \| Bar outside | L=(0,1,1) R=(2,0,0) | L=(0,2,2) R=(3,0,0) |
+| Rb \| None \| 2-bar outside    | L=(0,3,1) R=(2,1,0) | L=(0,3,2) R=(3,0,0) |
+| Ja \| 2-bar outside \| 2-bar inside | L=(0,0,1) R=(2,2,0) | L=(0,0,2) R=(3,3,0) |
+| Jb \| 2-bar inside \| 2-bar outside | L=(0,1,1) R=(2,0,0) | L=(0,2,2) R=(3,0,0) |
 | Ga \| None \| None             | L=(0,1,2) R=(3,2,0) | L=(0,3,1) R=(2,1,2) |
-| Gc \| None \| Bar inside       | L=(0,1,2) R=(3,3,0) | L=(0,0,1) R=(2,3,2) |
+| Gc \| None \| 2-bar inside     | L=(0,1,2) R=(3,3,0) | L=(0,0,1) R=(2,3,2) |
 
 **Observation triple discrepancies** (triples present in section 10 but absent from section 10.1, or vice versa):
 
@@ -752,33 +752,33 @@ Triples from section 10 not found in the layout dataset:
 
 | Perm | Left | Right | Note |
 | ---- | ---- | ----- | ---- |
-| Ua   | Solved      | Headlights  | Dataset has Ua\|Bar outside\|Headlights instead |
-| Ub   | Solved      | Headlights  | Dataset has Ub\|Bar outside\|Headlights instead |
-| Aa   | Headlights  | Bar outside | Dataset has Aa\|None\|Bar outside instead |
+| Ua   | 3-bar        | Headlights  | Dataset has Ua\|2-bar outside\|Headlights instead |
+| Ub   | 3-bar        | Headlights  | Dataset has Ub\|2-bar outside\|Headlights instead |
+| Aa   | Headlights  | 2-bar outside | Dataset has Aa\|None\|2-bar outside instead |
 | Ab   | Headlights  | None        | Dataset has Ab\|None\|None instead |
-| Ra   | Bar outside | None        | Dataset has Ra\|Bar outside\|Headlights instead |
-| Ra   | None        | Headlights  | Dataset has Ra\|None\|Bar outside instead |
-| Rb   | Bar inside  | Headlights  | Dataset has Rb\|Bar inside\|None instead |
+| Ra   | 2-bar outside | None      | Dataset has Ra\|2-bar outside\|Headlights instead |
+| Ra   | None        | Headlights  | Dataset has Ra\|None\|2-bar outside instead |
+| Rb   | 2-bar inside | Headlights | Dataset has Rb\|2-bar inside\|None instead |
 | Rb   | Headlights  | None        | Entirely absent from dataset |
-| V    | Bar inside  | Bar outside | Dataset has V\|Bar inside\|Bar inside instead |
-| Na   | Bar inside  | Bar outside | Dataset has Na\|Bar inside\|Solved instead |
-| Nb   | Bar outside | Bar inside  | Dataset has Nb\|Bar outside\|Headlights instead |
+| V    | 2-bar inside | 2-bar outside | Dataset has V\|2-bar inside\|2-bar inside instead |
+| Na   | 2-bar inside | 2-bar outside | Dataset has Na\|2-bar inside\|3-bar instead |
+| Nb   | 2-bar outside | 2-bar inside | Dataset has Nb\|2-bar outside\|Headlights instead |
 | Ga   | None        | Headlights  | Dataset has a second Ga\|None\|None entry instead |
-| Gc   | Bar outside | Headlights  | Entirely absent from dataset |
+| Gc   | 2-bar outside | Headlights | Entirely absent from dataset |
 | Gd   | Headlights  | None        | Dataset has Gd\|Headlights\|Headlights instead |
-| Gd   | None        | Bar inside  | Dataset has Gd\|None\|Bar outside instead |
-| Gd   | Bar outside | None        | Dataset has Gd\|Bar outside\|Bar outside instead |
+| Gd   | None        | 2-bar inside | Dataset has Gd\|None\|2-bar outside instead |
+| Gd   | 2-bar outside | None      | Dataset has Gd\|2-bar outside\|2-bar outside instead |
 
 Triples present in the layout dataset but not in section 10:
 
 | Perm | Left | Right | Note |
 | ---- | ---- | ----- | ---- |
-| Ua   | Bar outside | Headlights  | Possibly Ua\|Solved\|Headlights mislabeled |
-| Ub   | Bar outside | Headlights  | Possibly Ub\|Solved\|Headlights mislabeled |
+| Ua   | 2-bar outside | Headlights  | Possibly Ua\|3-bar\|Headlights mislabeled |
+| Ub   | 2-bar outside | Headlights  | Possibly Ub\|3-bar\|Headlights mislabeled |
 | F    | None        | Headlights  | Not listed in section 10 observation table |
-| V    | Bar inside  | Bar inside  | Section 10 lists V\|Bar inside\|Bar outside |
-| Na   | Bar inside  | Solved      | Section 10 lists Na\|Bar inside\|Bar outside |
-| Nb   | Bar outside | Headlights  | Section 10 lists Nb\|Bar outside\|Bar inside |
+| V    | 2-bar inside | 2-bar inside | Section 10 lists V\|2-bar inside\|2-bar outside |
+| Na   | 2-bar inside | 3-bar       | Section 10 lists Na\|2-bar inside\|2-bar outside |
+| Nb   | 2-bar outside | Headlights | Section 10 lists Nb\|2-bar outside\|2-bar inside |
 
 **Resolution requirement:** All inconsistencies above must be resolved against a physical cube before the dataset is promoted to implementation-ready status. Until resolved, the dataset is candidate-canonical only. The implementation plan tracks this work explicitly.
 

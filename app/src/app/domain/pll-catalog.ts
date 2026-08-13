@@ -24,10 +24,10 @@ export const PLL_PERMUTATIONS = [
 
 export const FACE_PATTERNS = [
   'Headlights',
-  'Bar inside',
-  'Bar outside',
+  '2-bar inside',
+  '2-bar outside',
   'None',
-  'Solved',
+  '3-bar',
 ] as const;
 
 export type PllPermutation = (typeof PLL_PERMUTATIONS)[number];

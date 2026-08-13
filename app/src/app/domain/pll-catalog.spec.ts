@@ -11,10 +11,10 @@ describe('pll catalog', () => {
   it('should expose exactly five canonical face patterns', () => {
     expect(FACE_PATTERNS).toEqual([
       'Headlights',
-      'Bar inside',
-      'Bar outside',
+      '2-bar inside',
+      '2-bar outside',
       'None',
-      'Solved',
+      '3-bar',
     ]);
   });
 });

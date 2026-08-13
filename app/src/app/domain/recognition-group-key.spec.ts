@@ -2,19 +2,19 @@ import { createRecognitionGroupKey, splitRecognitionGroupKey } from './recogniti
 
 describe('recognition group key helpers', () => {
   it('should preserve ordered left and right patterns', () => {
-    const leftToRight = createRecognitionGroupKey('Headlights', 'Bar inside');
-    const rightToLeft = createRecognitionGroupKey('Bar inside', 'Headlights');
+    const leftToRight = createRecognitionGroupKey('Headlights', '2-bar inside');
+    const rightToLeft = createRecognitionGroupKey('2-bar inside', 'Headlights');
 
-    expect(leftToRight).toBe('Headlights|Bar inside');
-    expect(rightToLeft).toBe('Bar inside|Headlights');
+    expect(leftToRight).toBe('Headlights|2-bar inside');
+    expect(rightToLeft).toBe('2-bar inside|Headlights');
     expect(leftToRight).not.toBe(rightToLeft);
   });
 
   it('should split a composite key back to its ordered patterns', () => {
-    const key = createRecognitionGroupKey('Solved', 'None');
+    const key = createRecognitionGroupKey('3-bar', 'None');
 
     expect(splitRecognitionGroupKey(key)).toEqual({
-      left: 'Solved',
+      left: '3-bar',
       right: 'None',
     });
   });

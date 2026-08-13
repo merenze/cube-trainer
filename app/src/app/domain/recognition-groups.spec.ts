@@ -10,7 +10,7 @@ describe('canonical recognition groups', () => {
   });
 
   it('should expose expected candidates for known composites', () => {
-    expect(getRecognitionGroupByPatterns('None', 'Bar inside')?.candidates).toEqual([
+    expect(getRecognitionGroupByPatterns('None', '2-bar inside')?.candidates).toEqual([
       'Gc',
       'Gd',
       'Y',
@@ -23,13 +23,13 @@ describe('canonical recognition groups', () => {
     ]);
   });
 
-  it('should treat Solved | Solved as invalid for v1 recognition groups', () => {
-    expect(getRecognitionGroupByPatterns('Solved', 'Solved')).toBeUndefined();
-    expect(isValidRecognitionComposite('Solved', 'Solved')).toBe(false);
+  it('should treat 3-bar | 3-bar as invalid for v1 recognition groups', () => {
+    expect(getRecognitionGroupByPatterns('3-bar', '3-bar')).toBeUndefined();
+    expect(isValidRecognitionComposite('3-bar', '3-bar')).toBe(false);
   });
 
   it('should validate known canonical composites as valid', () => {
     expect(isValidRecognitionComposite('None', 'None')).toBe(true);
-    expect(isValidRecognitionComposite('Solved', 'None')).toBe(true);
+    expect(isValidRecognitionComposite('3-bar', 'None')).toBe(true);
   });
 });
