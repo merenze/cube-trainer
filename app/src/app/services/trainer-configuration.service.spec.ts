@@ -66,15 +66,38 @@ describe('trainer configuration service', () => {
   });
 
   it('should re-enable a previously disabled candidate', () => {
-    const groupKey = CANONICAL_RECOGNITION_GROUPS[0].key;
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    const group = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!;
     const candidate = group.candidates[0];
 
-    service.enableGroup(groupKey);
-    service.disableCandidate(groupKey, candidate);
-    service.enableCandidate(groupKey, candidate);
+    service.enableGroup(group.key);
+    service.disableCandidate(group.key, candidate);
+    service.enableCandidate(group.key, candidate);
 
-    expect(service.enabledCandidateKeys(groupKey)).toContain(candidate);
+    expect(service.enabledCandidateKeys(group.key)).toContain(candidate);
+  });
+
+  it('should deselect the group when its last candidate is disabled', () => {
+    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    service.disableCandidate(group.key, group.candidates[0]);
+
+    expect(service.enabledGroupKeys()).not.toContain(group.key);
+  });
+
+  it('should not deselect the group when a non-last candidate is disabled', () => {
+    const group = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!;
+    service.enableGroup(group.key);
+    service.disableCandidate(group.key, group.candidates[0]);
+
+    expect(service.enabledGroupKeys()).toContain(group.key);
+  });
+
+  it('hasEligibleCandidates should be true when single-candidate groups are pre-enabled', () => {
+    expect(service.hasEligibleCandidates()).toBe(true);
+  });
+
+  it('hasEligibleCandidates should be false when no candidates are enabled', () => {
+    service.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
+    expect(service.hasEligibleCandidates()).toBe(false);
   });
 
   it('should return empty candidate list for a disabled group', () => {
@@ -136,7 +159,7 @@ describe('trainer configuration service', () => {
   });
 
   it('takeSnapshot should capture enabled groups and candidates', () => {
-    const group0 = CANONICAL_RECOGNITION_GROUPS[0];
+    const group0 = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!;
     const group1 = CANONICAL_RECOGNITION_GROUPS[1];
     service.enableGroup(group0.key);
     service.enableGroup(group1.key);

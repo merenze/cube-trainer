@@ -9,7 +9,7 @@
     </section>
     <div class="config-actions">
       <button type="button" class="cancel-btn" (click)="cancelConfig()">Cancel</button>
-      <button type="button" class="done-btn" (click)="doneConfig()">Done</button>
+      <button type="button" class="done-btn" [disabled]="!hasEligibleCandidates()" (click)="doneConfig()">Done</button>
     </div>
   } @else {
     <div class="training-layout">

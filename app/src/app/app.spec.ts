@@ -247,4 +247,32 @@ describe('App', () => {
 
     expect(configService.enabledGroupKeys().length).toBe(7);
   });
+
+  it('should disable the Done button when no candidates are selected', async () => {
+    const fixture = TestBed.createComponent(App);
+    const configService = TestBed.inject(TrainerConfigurationService);
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.configure-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const doneBtn = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.done-btn')!;
+    expect(doneBtn.disabled).toBe(true);
+  });
+
+  it('should enable the Done button when at least one candidate is selected', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.configure-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const doneBtn = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.done-btn')!;
+    expect(doneBtn.disabled).toBe(false);
+  });
 });

@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import {
   CANONICAL_RECOGNITION_GROUPS,
 } from '../domain/recognition-groups';
@@ -22,6 +22,12 @@ export class TrainerConfigurationService {
 
   private readonly _configurationVersion = signal(0);
   readonly configurationVersion = this._configurationVersion.asReadonly();
+  readonly hasEligibleCandidates = computed(() => {
+    this._configurationVersion();
+    return Array.from(this.enabledGroups).some(
+      (key) => (this.enabledCandidatesByGroup.get(key)?.size ?? 0) > 0,
+    );
+  });
 
   constructor() {
     for (const group of CANONICAL_RECOGNITION_GROUPS) {
@@ -79,6 +85,9 @@ export class TrainerConfigurationService {
     const candidates = this.enabledCandidatesByGroup.get(groupKey);
     if (candidates) {
       candidates.delete(candidate);
+      if (candidates.size === 0) {
+        this.enabledGroups.delete(groupKey);
+      }
       this.bumpVersion();
     }
   }

@@ -162,7 +162,7 @@ describe('TrainerConfigurationComponent', () => {
   });
 
   it('should re-enable a candidate when its chip is clicked while disabled', async () => {
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
+    const group = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!;
     const candidate = group.candidates[0];
     configService.enableGroup(group.key);
     configService.disableCandidate(group.key, candidate);
