@@ -41,12 +41,12 @@ describe('TrainerConfigurationComponent', () => {
     expect(chip.textContent).toContain(group.rightPattern);
   });
 
-  it('should show chips as inactive by default (no groups enabled)', async () => {
+  it('should show 7 chips as active by default (single-candidate groups pre-enabled)', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
     const activeChips = fixture.nativeElement.querySelectorAll('[data-group-chip][aria-pressed="true"]');
-    expect(activeChips.length).toBe(0);
+    expect(activeChips.length).toBe(7);
   });
 
   it('should mark a chip as active when its group is enabled', async () => {
@@ -60,10 +60,10 @@ describe('TrainerConfigurationComponent', () => {
   });
 
   it('should enable a group when its chip is clicked while disabled', async () => {
+    const group = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!;
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const group = CANONICAL_RECOGNITION_GROUPS[0];
     const chip: HTMLElement = fixture.nativeElement.querySelector(`[data-group-key="${group.key}"]`);
     chip.click();
     fixture.detectChanges();
@@ -85,6 +85,7 @@ describe('TrainerConfigurationComponent', () => {
   });
 
   it('should keep other groups unchanged when one chip is toggled', async () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const group0 = CANONICAL_RECOGNITION_GROUPS[0];
     const group1 = CANONICAL_RECOGNITION_GROUPS[1];
     configService.enableGroup(group1.key);
@@ -101,6 +102,7 @@ describe('TrainerConfigurationComponent', () => {
 
   // Candidate chip tests
   it('should show no candidate chips when no groups are enabled', async () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -109,6 +111,7 @@ describe('TrainerConfigurationComponent', () => {
   });
 
   it('should show candidate chips for an enabled group', async () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const group = CANONICAL_RECOGNITION_GROUPS[0];
     configService.enableGroup(group.key);
     fixture.detectChanges();
@@ -174,6 +177,7 @@ describe('TrainerConfigurationComponent', () => {
   });
 
   it('should not show candidate chips for disabled groups', async () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const group0 = CANONICAL_RECOGNITION_GROUPS[0];
     const group1 = CANONICAL_RECOGNITION_GROUPS[1];
     configService.enableGroup(group0.key);

@@ -26,11 +26,13 @@ describe('EligibleObservationService', () => {
   });
 
   it('should return empty observations when no groups are enabled', () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const observations = service.eligibleObservations();
     expect(observations).toEqual([]);
   });
 
   it('should return observations for all candidates in an enabled group', () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const groupKey = CANONICAL_RECOGNITION_GROUPS[0].key;
     const group = CANONICAL_RECOGNITION_GROUPS[0];
 
@@ -48,6 +50,7 @@ describe('EligibleObservationService', () => {
   });
 
   it('should exclude disabled candidates from eligible observations', () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const groupKey = CANONICAL_RECOGNITION_GROUPS[0].key;
     const group = CANONICAL_RECOGNITION_GROUPS[0];
     const candidateToDisable = group.candidates[0];
@@ -64,6 +67,7 @@ describe('EligibleObservationService', () => {
   });
 
   it('should include observations from multiple enabled groups', () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const group1Key = CANONICAL_RECOGNITION_GROUPS[0].key;
     const group2Key = CANONICAL_RECOGNITION_GROUPS[1].key;
     const group1 = CANONICAL_RECOGNITION_GROUPS[0];

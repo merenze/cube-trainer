@@ -23,6 +23,15 @@ export class TrainerConfigurationService {
   private readonly _configurationVersion = signal(0);
   readonly configurationVersion = this._configurationVersion.asReadonly();
 
+  constructor() {
+    for (const group of CANONICAL_RECOGNITION_GROUPS) {
+      if (group.candidates.length === 1) {
+        this.enabledGroups.add(group.key);
+        this.enabledCandidatesByGroup.set(group.key, new Set(group.candidates));
+      }
+    }
+  }
+
   private bumpVersion(): void {
     this._configurationVersion.update((v) => v + 1);
   }

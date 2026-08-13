@@ -48,6 +48,7 @@ describe('AnswerControlComponent', () => {
   });
 
   it('should show no answer chips when no groups are enabled', async () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -56,6 +57,7 @@ describe('AnswerControlComponent', () => {
   });
 
   it('should show answer chips for the candidates in an enabled group', async () => {
+    configService.restoreSnapshot({ enabledGroups: [], enabledCandidates: new Map() });
     const group = CANONICAL_RECOGNITION_GROUPS[0];
     configService.enableGroup(group.key);
     fixture.detectChanges();

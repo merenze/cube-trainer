@@ -30,8 +30,15 @@ describe('trainer configuration service', () => {
     expect(service.enabledGroupKeys()).not.toContain(groupKey);
   });
 
-  it('should return empty enabled groups by default', () => {
-    expect(service.enabledGroupKeys().length).toBe(0);
+  it('should pre-enable the seven single-candidate groups by default', () => {
+    const singleCandidateGroups = CANONICAL_RECOGNITION_GROUPS.filter(
+      (g) => g.candidates.length === 1,
+    );
+
+    expect(service.enabledGroupKeys().length).toBe(7);
+    for (const group of singleCandidateGroups) {
+      expect(service.enabledGroupKeys()).toContain(group.key);
+    }
   });
 
   it('should enable all candidates in a group when the group activates', () => {
@@ -71,7 +78,7 @@ describe('trainer configuration service', () => {
   });
 
   it('should return empty candidate list for a disabled group', () => {
-    const groupKey = CANONICAL_RECOGNITION_GROUPS[0].key;
+    const groupKey = CANONICAL_RECOGNITION_GROUPS.find(g => g.candidates.length > 1)!.key;
 
     expect(service.enabledCandidateKeys(groupKey).length).toBe(0);
   });
@@ -143,9 +150,9 @@ describe('trainer configuration service', () => {
     expect(snap.enabledCandidates.get(group0.key)?.length).toBe(group0.candidates.length - 1);
   });
 
-  it('takeSnapshot of empty config should have no enabled groups', () => {
+  it('takeSnapshot of default config should have 7 enabled groups', () => {
     const snap = service.takeSnapshot();
-    expect(snap.enabledGroups.length).toBe(0);
+    expect(snap.enabledGroups.length).toBe(7);
   });
 
   it('restoreSnapshot should restore enabled groups', () => {
@@ -176,9 +183,9 @@ describe('trainer configuration service', () => {
 
   it('restoreSnapshot to empty should leave no enabled groups', () => {
     const group0 = CANONICAL_RECOGNITION_GROUPS[0];
-    const emptySnap = service.takeSnapshot();
-
     service.enableGroup(group0.key);
+    const emptySnap = { enabledGroups: [] as const, enabledCandidates: new Map() };
+
     service.restoreSnapshot(emptySnap);
 
     expect(service.enabledGroupKeys().length).toBe(0);

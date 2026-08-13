@@ -245,6 +245,6 @@ describe('App', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(configService.enabledGroupKeys().length).toBe(0);
+    expect(configService.enabledGroupKeys().length).toBe(7);
   });
 });
