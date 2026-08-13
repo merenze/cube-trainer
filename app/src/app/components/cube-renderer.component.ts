@@ -108,8 +108,9 @@ export class CubeRendererComponent {
     }
     if (sticker.row === 0) {
       // U-layer row: PLL recognition stickers from display state
+      const col = sticker.face === 'right' ? 2 - sticker.col : sticker.col;
       const face = sticker.face === 'left' ? state.leftFace : state.rightFace;
-      return this.appearanceService.sideIndexToColor(face[sticker.col] as SideColorIndex);
+      return this.appearanceService.sideIndexToColor(face[col] as SideColorIndex);
     }
     // Bottom two rows: solved layers with randomly chosen sequential color pair
     const base: SideColorIndex = sticker.face === 'left'

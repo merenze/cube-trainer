@@ -78,11 +78,11 @@ describe('CubeRendererComponent', () => {
     }
   });
 
-  it('should fill right U-layer stickers from rightFace logical indices', async () => {
+  it('should fill right U-layer stickers from rightFace logical indices (reversed col)', async () => {
     stubCubeState.setState(KNOWN_STATE); fixture.detectChanges(); await fixture.whenStable();
     for (let col = 0; col < 3; col++) {
       const p = fixture.nativeElement.querySelector(`[data-sticker="right-0-${col}"]`);
-      expect(p.getAttribute('fill')).toBe(appearance.sideIndexToColor(KNOWN_STATE.rightFace[col]));
+      expect(p.getAttribute('fill')).toBe(appearance.sideIndexToColor(KNOWN_STATE.rightFace[2 - col]));
     }
   });
 
