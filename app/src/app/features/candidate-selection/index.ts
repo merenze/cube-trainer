@@ -20,8 +20,8 @@
  */
 
 // Re-export from current locations (will move to ./services and ./components in future iterations)
-export { EligibleObservationService, type EligibleObservation } from '../../services/eligible-observation.service';
-export { CaseSelectorService } from '../../services/case-selector.service';
+export { EligibleObservationService, type EligibleObservation } from './services/eligible-observation.service';
+export { CaseSelectorService } from './services/case-selector.service';
 export { TrainerConfigurationService, type ConfigSnapshot } from '../../services/trainer-configuration.service';
 export { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './services/color-anchor-strategy';
 export { CASE_ORDERING_STRATEGY, type CaseOrderingStrategy } from './services/case-ordering-strategy';

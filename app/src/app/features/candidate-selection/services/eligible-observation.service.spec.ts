@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { EligibleObservationService } from './eligible-observation.service';
-import { TrainerConfigurationService } from './trainer-configuration.service';
+import { TrainerConfigurationService } from '../../../services/trainer-configuration.service';
 import {
   CANONICAL_RECOGNITION_GROUPS,
   getObservationColorMappingsForTriplet,
   CANONICAL_OBSERVATION_COLOR_MAPPINGS,
-} from '../domain';
+} from '../../../domain';
 
 describe('EligibleObservationService', () => {
   let service: EligibleObservationService;

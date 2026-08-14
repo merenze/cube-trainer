@@ -1,4 +1,4 @@
-import { type EligibleObservation } from '../../../services/eligible-observation.service';
+import { type EligibleObservation } from './eligible-observation.service';
 import { type CaseOrderingStrategy } from './case-ordering-strategy';
 
 export class ShuffledBagOrderingStrategy implements CaseOrderingStrategy {

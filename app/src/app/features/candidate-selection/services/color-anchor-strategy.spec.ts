@@ -1,5 +1,5 @@
 import { type ColorAnchorStrategy, COLOR_ANCHOR_STRATEGY } from './color-anchor-strategy';
-import { type EligibleObservation } from '../../../services/eligible-observation.service';
+import { type EligibleObservation } from './eligible-observation.service';
 import { type SideColorLayout } from '../../../domain';
 
 class FixedAnchorStrategy implements ColorAnchorStrategy {

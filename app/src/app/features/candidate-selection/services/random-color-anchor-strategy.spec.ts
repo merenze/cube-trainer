@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { RandomColorAnchorStrategy } from './random-color-anchor-strategy';
-import { type EligibleObservation } from '../../../services/eligible-observation.service';
+import { type EligibleObservation } from './eligible-observation.service';
 import { normalizeObservedColorLayout } from '../../../domain';
 
 function makeObs(left: [number,number,number], right: [number,number,number]): EligibleObservation {

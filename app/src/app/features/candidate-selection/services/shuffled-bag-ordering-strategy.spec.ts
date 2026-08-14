@@ -1,5 +1,5 @@
 import { ShuffledBagOrderingStrategy } from './shuffled-bag-ordering-strategy';
-import { type EligibleObservation } from '../../../services/eligible-observation.service';
+import { type EligibleObservation } from './eligible-observation.service';
 
 function makeObs(candidate: string): EligibleObservation {
   return {

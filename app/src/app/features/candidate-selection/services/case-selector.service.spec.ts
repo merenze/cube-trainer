@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { CaseSelectorService } from './case-selector.service';
 import { EligibleObservationService, type EligibleObservation } from './eligible-observation.service';
-import { CASE_ORDERING_STRATEGY, type CaseOrderingStrategy } from '../features/candidate-selection/services/case-ordering-strategy';
-import { TrainerConfigurationService } from './trainer-configuration.service';
-import { CANONICAL_RECOGNITION_GROUPS } from '../domain';
+import { CASE_ORDERING_STRATEGY, type CaseOrderingStrategy } from './case-ordering-strategy';
+import { TrainerConfigurationService } from '../../../services/trainer-configuration.service';
+import { CANONICAL_RECOGNITION_GROUPS } from '../../../domain';
 
 function makeObs(candidate: string): EligibleObservation {
   return {
