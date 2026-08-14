@@ -2,9 +2,8 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { CASE_ORDERING_STRATEGY, ShuffledBagOrderingStrategy } from './features/candidate-selection';
+import { CASE_ORDERING_STRATEGY, RandomColorAnchorStrategy, ShuffledBagOrderingStrategy } from './features/candidate-selection';
 import { COLOR_ANCHOR_STRATEGY } from './services/color-anchor-strategy';
-import { RandomColorAnchorStrategy } from './services/random-color-anchor-strategy';
 
 export const appConfig: ApplicationConfig = {
   providers: [
