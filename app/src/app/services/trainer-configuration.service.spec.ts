@@ -1,7 +1,4 @@
-import { createRecognitionGroupKey } from '../domain/recognition-group-key';
-import {
-  CANONICAL_RECOGNITION_GROUPS,
-} from '../domain/recognition-groups';
+import { createRecognitionGroupKey, CANONICAL_RECOGNITION_GROUPS } from '../domain';
 import {
   TrainerConfigurationService,
 } from './trainer-configuration.service';

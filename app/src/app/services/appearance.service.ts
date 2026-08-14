@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { type SideColorIndex } from '../domain/observation-color-layout';
+import { type SideColorIndex } from '../domain';
 
 // Sequence: Red → Green → Orange → Blue (with yellow on top)
 const SIDE_COLORS: readonly [string, string, string, string] = [

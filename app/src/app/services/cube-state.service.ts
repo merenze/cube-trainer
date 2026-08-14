@@ -1,6 +1,6 @@
 import { Injectable, computed } from '@angular/core';
 import { TrainerLifecycleService } from './trainer-lifecycle.service';
-import { type SideColorIndex } from '../domain/observation-color-layout';
+import { type SideColorIndex } from '../domain';
 
 export type CubeDisplayState = {
   leftFace: readonly [SideColorIndex, SideColorIndex, SideColorIndex];

@@ -4,7 +4,7 @@ import { CaseSelectorService } from './case-selector.service';
 import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './color-anchor-strategy';
 import { SessionStatisticsService } from './session-statistics.service';
 import { type EligibleObservation } from './eligible-observation.service';
-import { type SideColorLayout } from '../domain/observation-color-layout';
+import { type SideColorLayout } from '../domain';
 
 function makeObs(candidate: string): EligibleObservation {
   return {

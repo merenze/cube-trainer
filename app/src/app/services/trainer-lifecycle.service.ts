@@ -2,8 +2,7 @@ import { Injectable, Inject, signal } from '@angular/core';
 import { CaseSelectorService } from './case-selector.service';
 import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './color-anchor-strategy';
 import { type EligibleObservation } from './eligible-observation.service';
-import { type SideColorLayout } from '../domain/observation-color-layout';
-import { type PllPermutation } from '../domain/pll-catalog';
+import { type SideColorLayout, type PllPermutation } from '../domain';
 import { SessionStatisticsService } from './session-statistics.service';
 
 export type TrainerLifecycleState = 'idle' | 'presenting' | 'empty';

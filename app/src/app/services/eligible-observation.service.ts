@@ -2,12 +2,10 @@ import { Injectable } from '@angular/core';
 import { TrainerConfigurationService } from './trainer-configuration.service';
 import {
   CANONICAL_RECOGNITION_GROUPS,
-} from '../domain/recognition-groups';
-import {
   getObservationColorMappingsForTriplet,
   type SideColorLayout,
-} from '../domain/observation-color-catalog';
-import { type PllPermutation } from '../domain/pll-catalog';
+  type PllPermutation,
+} from '../domain';
 
 export interface EligibleObservation {
   candidate: PllPermutation;

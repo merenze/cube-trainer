@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CubeStateService } from '../services/cube-state.service';
 import { AppearanceService } from '../services/appearance.service';
-import { type SideColorIndex } from '../domain/observation-color-layout';
+import { type SideColorIndex } from '../domain';
 
 type Point = [number, number];
 

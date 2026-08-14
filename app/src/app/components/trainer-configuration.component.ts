@@ -1,8 +1,6 @@
 import { Component, inject, signal, computed, Output, EventEmitter } from '@angular/core';
-import { CANONICAL_RECOGNITION_GROUPS, type RecognitionGroup } from '../domain/recognition-groups';
-import { FACE_PATTERNS, type FacePattern, type PllPermutation } from '../domain/pll-catalog';
+import { CANONICAL_RECOGNITION_GROUPS, type RecognitionGroup, FACE_PATTERNS, type FacePattern, type PllPermutation, type RecognitionGroupKey } from '../domain';
 import { TrainerConfigurationService } from '../services/trainer-configuration.service';
-import { type RecognitionGroupKey } from '../domain/recognition-group-key';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';

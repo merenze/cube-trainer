@@ -3,11 +3,9 @@ import { EligibleObservationService } from './eligible-observation.service';
 import { TrainerConfigurationService } from './trainer-configuration.service';
 import {
   CANONICAL_RECOGNITION_GROUPS,
-} from '../domain/recognition-groups';
-import {
   getObservationColorMappingsForTriplet,
   CANONICAL_OBSERVATION_COLOR_MAPPINGS,
-} from '../domain/observation-color-catalog';
+} from '../domain';
 
 describe('EligibleObservationService', () => {
   let service: EligibleObservationService;

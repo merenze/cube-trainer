@@ -1,9 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
-import {
-  CANONICAL_RECOGNITION_GROUPS,
-} from '../domain/recognition-groups';
-import { type RecognitionGroupKey } from '../domain/recognition-group-key';
-import { type PllPermutation } from '../domain/pll-catalog';
+import { CANONICAL_RECOGNITION_GROUPS, type RecognitionGroupKey, type PllPermutation } from '../domain';
 
 export type ConfigSnapshot = {
   enabledGroups: readonly RecognitionGroupKey[];

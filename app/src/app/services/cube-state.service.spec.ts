@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { CubeStateService } from './cube-state.service';
 import { TrainerLifecycleService } from './trainer-lifecycle.service';
-import { type SideColorLayout } from '../domain/observation-color-layout';
+import { type SideColorLayout } from '../domain';
 
 class StubTrainerLifecycleService {
   private readonly _resolvedLayout = signal<SideColorLayout | null>(null);

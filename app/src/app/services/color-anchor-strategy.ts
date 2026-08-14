@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { type EligibleObservation } from './eligible-observation.service';
-import { type SideColorLayout } from '../domain/observation-color-layout';
+import { type SideColorLayout } from '../domain';
 
 export const COLOR_ANCHOR_STRATEGY = new InjectionToken<ColorAnchorStrategy>('ColorAnchorStrategy');
 

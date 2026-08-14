@@ -1,6 +1,6 @@
 import { type ColorAnchorStrategy, COLOR_ANCHOR_STRATEGY } from './color-anchor-strategy';
 import { type EligibleObservation } from './eligible-observation.service';
-import { type SideColorLayout } from '../domain/observation-color-layout';
+import { type SideColorLayout } from '../domain';
 
 class FixedAnchorStrategy implements ColorAnchorStrategy {
   selectLayout(observation: EligibleObservation): SideColorLayout {

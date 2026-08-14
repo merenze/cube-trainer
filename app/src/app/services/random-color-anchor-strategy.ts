@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { type ColorAnchorStrategy } from './color-anchor-strategy';
 import { type EligibleObservation } from './eligible-observation.service';
-import { rotateColorLayout, type SideColorIndex, type SideColorLayout } from '../domain/observation-color-layout';
+import { rotateColorLayout, type SideColorIndex, type SideColorLayout } from '../domain';
 
 @Injectable()
 export class RandomColorAnchorStrategy implements ColorAnchorStrategy {

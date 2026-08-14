@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { TrainerConfigurationComponent } from './trainer-configuration.component';
 import { TrainerConfigurationService } from '../services/trainer-configuration.service';
-import { CANONICAL_RECOGNITION_GROUPS } from '../domain/recognition-groups';
+import { CANONICAL_RECOGNITION_GROUPS } from '../domain';
 
 function checkGroupRow(fixture: any, groupKey: string): HTMLElement {
   return fixture.nativeElement.querySelector(`[data-group-row="${groupKey}"]`) as HTMLElement;

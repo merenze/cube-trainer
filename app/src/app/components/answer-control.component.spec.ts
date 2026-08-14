@@ -3,7 +3,7 @@ import { signal } from '@angular/core';
 import { AnswerControlComponent } from './answer-control.component';
 import { TrainerConfigurationService } from '../services/trainer-configuration.service';
 import { TrainerLifecycleService } from '../services/trainer-lifecycle.service';
-import { CANONICAL_RECOGNITION_GROUPS } from '../domain/recognition-groups';
+import { CANONICAL_RECOGNITION_GROUPS } from '../domain';
 import type { TrainerLifecycleState } from '../services/trainer-lifecycle.service';
 
 class StubTrainerLifecycleService {
