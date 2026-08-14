@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { TrainerLifecycleService } from './trainer-lifecycle.service';
-import { CaseSelectorService } from '../../candidate-selection';
-import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from '../../candidate-selection';
-import { SessionStatisticsService } from '../../session-stats';
-import { type EligibleObservation } from '../../candidate-selection';
-import { type SideColorLayout } from '../../../domain';
+import { CaseSelectorService } from './case-selector.service';
+import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './color-anchor-strategy';
+import { SessionStatisticsService } from '../features/session-stats';
+import { type EligibleObservation } from './eligible-observation.service';
+import { type SideColorLayout } from '../domain';
 
 function makeObs(candidate: string): EligibleObservation {
   return {
@@ -109,7 +109,7 @@ describe('TrainerLifecycleService', () => {
   it('should reset round state when advancing to a new case', () => {
     stubCaseSelector.setQueue(makeObs('Ua'), makeObs('Ub'));
     service.advance();
-    service.submitAnswer('Z' as any);
+    service.submitAnswer('Z' as any); // incorrect
 
     service.advance();
 
@@ -200,9 +200,9 @@ describe('TrainerLifecycleService', () => {
   it('should record not-first-try when correct after an incorrect attempt', () => {
     stubCaseSelector.setQueue(makeObs('Ua'), makeObs('Ub'));
     service.advance();
-    service.submitAnswer('Ub' as any);
+    service.submitAnswer('Ub' as any); // wrong
 
-    service.submitAnswer('Ua' as any);
+    service.submitAnswer('Ua' as any); // correct
 
     expect(stubStats.rounds).toEqual([{ firstTryCorrect: false }]);
   });
@@ -228,7 +228,7 @@ describe('TrainerLifecycleService', () => {
   it('should clear all signals when resetToIdle() is called', () => {
     stubCaseSelector.setQueue(makeObs('Ua'));
     service.advance();
-    service.submitAnswer('Ub' as any);
+    service.submitAnswer('Ub' as any); // incorrect → sets feedback and incorrectAttemptOccurred
 
     service.resetToIdle();
 
