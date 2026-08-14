@@ -1,5 +1,5 @@
 import { Injectable, computed } from '@angular/core';
-import { TrainerLifecycleService } from './trainer-lifecycle.service';
+import { TrainerLifecycleService } from '../features/core';
 import { type SideColorIndex } from '../domain';
 
 export type CubeDisplayState = {

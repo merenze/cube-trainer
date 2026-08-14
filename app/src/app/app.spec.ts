@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { App } from './app';
-import { TrainerLifecycleService } from './services/trainer-lifecycle.service';
+import { TrainerLifecycleService } from './features/core';
 import { SessionStatisticsService } from './features/session-stats';
 import { CubeStateService } from './services/cube-state.service';
 import { TrainerConfigurationService } from './services/trainer-configuration.service';
 import { CASE_ORDERING_STRATEGY } from './services/case-ordering-strategy';
 import { COLOR_ANCHOR_STRATEGY } from './services/color-anchor-strategy';
 import { type CubeDisplayState } from './services/cube-state.service';
-import type { TrainerLifecycleState, AnswerFeedback } from './services/trainer-lifecycle.service';
+import type { TrainerLifecycleState, AnswerFeedback } from './features/core';
 
 class StubTrainerLifecycleService {
   private readonly _state = signal<TrainerLifecycleState>('idle');

@@ -1,6 +1,6 @@
 import { Component, inject, computed, effect, OnDestroy } from '@angular/core';
 import { TrainerConfigurationService } from '../services/trainer-configuration.service';
-import { TrainerLifecycleService } from '../services/trainer-lifecycle.service';
+import { TrainerLifecycleService } from '../features/core';
 import { CANONICAL_RECOGNITION_GROUPS, type PllPermutation } from '../domain';
 
 const AUTO_ADVANCE_DELAY_MS = 900;

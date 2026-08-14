@@ -2,9 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { AnswerControlComponent } from './answer-control.component';
 import { TrainerConfigurationService } from '../services/trainer-configuration.service';
-import { TrainerLifecycleService } from '../services/trainer-lifecycle.service';
+import { TrainerLifecycleService } from '../features/core';
 import { CANONICAL_RECOGNITION_GROUPS } from '../domain';
-import type { TrainerLifecycleState } from '../services/trainer-lifecycle.service';
+import type { TrainerLifecycleState } from '../features/core';
 
 class StubTrainerLifecycleService {
   private readonly _state = signal<TrainerLifecycleState>('presenting');
