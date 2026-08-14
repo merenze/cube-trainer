@@ -1,9 +1,9 @@
 import { Injectable, Inject, signal } from '@angular/core';
-import { CaseSelectorService } from './case-selector.service';
-import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './color-anchor-strategy';
-import { type EligibleObservation } from './eligible-observation.service';
-import { type SideColorLayout, type PllPermutation } from '../domain';
-import { SessionStatisticsService } from '../features/session-stats';
+import { CaseSelectorService } from '../../candidate-selection';
+import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from '../../candidate-selection';
+import { type EligibleObservation } from '../../candidate-selection';
+import { type SideColorLayout, type PllPermutation } from '../../../domain';
+import { SessionStatisticsService } from '../../session-stats';
 
 export type TrainerLifecycleState = 'idle' | 'presenting' | 'empty';
 export type AnswerFeedback = 'correct' | 'incorrect';

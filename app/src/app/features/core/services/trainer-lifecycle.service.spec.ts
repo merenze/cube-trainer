@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { TrainerLifecycleService } from './trainer-lifecycle.service';
-import { CaseSelectorService } from './case-selector.service';
-import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './color-anchor-strategy';
-import { SessionStatisticsService } from '../features/session-stats';
-import { type EligibleObservation } from './eligible-observation.service';
-import { type SideColorLayout } from '../domain';
+import { CaseSelectorService } from '../../candidate-selection';
+import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from '../../candidate-selection';
+import { SessionStatisticsService } from '../../session-stats';
+import { type EligibleObservation } from '../../candidate-selection';
+import { type SideColorLayout } from '../../../domain';
 
 function makeObs(candidate: string): EligibleObservation {
   return {
