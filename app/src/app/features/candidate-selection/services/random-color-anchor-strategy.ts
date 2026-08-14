@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { type ColorAnchorStrategy } from '../../../services/color-anchor-strategy';
+import { type ColorAnchorStrategy } from './color-anchor-strategy';
 import { type EligibleObservation } from '../../../services/eligible-observation.service';
 import { rotateColorLayout, type SideColorIndex, type SideColorLayout } from '../../../domain';
 
