@@ -16,5 +16,4 @@
  * - No circular imports with other features
  */
 
-// Re-export from current locations (will move to ./services in future iterations)
-export { SessionStatisticsService } from '../../services/session-statistics.service';
+export { SessionStatisticsService } from './services/session-statistics.service';

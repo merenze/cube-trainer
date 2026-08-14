@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { TrainerLifecycleService } from './trainer-lifecycle.service';
 import { CaseSelectorService } from './case-selector.service';
 import { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from './color-anchor-strategy';
-import { SessionStatisticsService } from './session-statistics.service';
+import { SessionStatisticsService } from '../features/session-stats';
 import { type EligibleObservation } from './eligible-observation.service';
 import { type SideColorLayout } from '../domain';
 

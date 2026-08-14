@@ -6,7 +6,7 @@ import { AnswerControlComponent } from './components/answer-control.component';
 import { ConfirmDialogComponent } from './components/confirm-dialog.component';
 import { TrainerLifecycleService } from './services/trainer-lifecycle.service';
 import { TrainerConfigurationService, type ConfigSnapshot } from './services/trainer-configuration.service';
-import { SessionStatisticsService } from './services/session-statistics.service';
+import { SessionStatisticsService } from './features/session-stats';
 
 @Component({
   selector: 'app-root',

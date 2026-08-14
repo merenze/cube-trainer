@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { App } from './app';
 import { TrainerLifecycleService } from './services/trainer-lifecycle.service';
-import { SessionStatisticsService } from './services/session-statistics.service';
+import { SessionStatisticsService } from './features/session-stats';
 import { CubeStateService } from './services/cube-state.service';
 import { TrainerConfigurationService } from './services/trainer-configuration.service';
 import { CASE_ORDERING_STRATEGY } from './services/case-ordering-strategy';
