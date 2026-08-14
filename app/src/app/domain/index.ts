@@ -13,8 +13,4 @@
  * No feature should import directly from domain submodules. Use this barrel export only.
  */
 
-export * from './pll-catalog';
-export * from './observation-color-layout';
-export * from './observation-color-catalog';
-export * from './recognition-group-key';
-export * from './recognition-groups';
+export * from './catalogs';
