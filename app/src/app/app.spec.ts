@@ -5,7 +5,7 @@ import { TrainerLifecycleService } from './features/core';
 import { SessionStatisticsService } from './features/session-stats';
 import { CubeStateService } from './services/cube-state.service';
 import { TrainerConfigurationService } from './services/trainer-configuration.service';
-import { CASE_ORDERING_STRATEGY } from './services/case-ordering-strategy';
+import { CASE_ORDERING_STRATEGY } from './features/candidate-selection';
 import { COLOR_ANCHOR_STRATEGY } from './services/color-anchor-strategy';
 import { type CubeDisplayState } from './services/cube-state.service';
 import type { TrainerLifecycleState, AnswerFeedback } from './features/core';

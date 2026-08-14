@@ -24,7 +24,7 @@ export { EligibleObservationService, type EligibleObservation } from '../../serv
 export { CaseSelectorService } from '../../services/case-selector.service';
 export { TrainerConfigurationService, type ConfigSnapshot } from '../../services/trainer-configuration.service';
 export { COLOR_ANCHOR_STRATEGY, type ColorAnchorStrategy } from '../../services/color-anchor-strategy';
-export { CASE_ORDERING_STRATEGY, type CaseOrderingStrategy } from '../../services/case-ordering-strategy';
+export { CASE_ORDERING_STRATEGY, type CaseOrderingStrategy } from './services/case-ordering-strategy';
 export { RandomColorAnchorStrategy } from '../../services/random-color-anchor-strategy';
 export { ShuffledBagOrderingStrategy } from '../../services/shuffled-bag-ordering-strategy';
 export { AnswerControlComponent } from '../../components/answer-control.component';

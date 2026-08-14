@@ -2,8 +2,7 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { CASE_ORDERING_STRATEGY } from './services/case-ordering-strategy';
-import { ShuffledBagOrderingStrategy } from './services/shuffled-bag-ordering-strategy';
+import { CASE_ORDERING_STRATEGY, ShuffledBagOrderingStrategy } from './features/candidate-selection';
 import { COLOR_ANCHOR_STRATEGY } from './services/color-anchor-strategy';
 import { RandomColorAnchorStrategy } from './services/random-color-anchor-strategy';
 

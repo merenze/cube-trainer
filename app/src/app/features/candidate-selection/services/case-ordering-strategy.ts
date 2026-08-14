@@ -1,5 +1,5 @@
 import { InjectionToken } from '@angular/core';
-import { type EligibleObservation } from './eligible-observation.service';
+import { type EligibleObservation } from '../../../services/eligible-observation.service';
 
 export const CASE_ORDERING_STRATEGY = new InjectionToken<CaseOrderingStrategy>('CaseOrderingStrategy');
 

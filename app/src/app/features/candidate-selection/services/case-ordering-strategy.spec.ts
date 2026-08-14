@@ -1,5 +1,5 @@
 import { CaseOrderingStrategy } from './case-ordering-strategy';
-import { type EligibleObservation } from './eligible-observation.service';
+import { type EligibleObservation } from '../../../services/eligible-observation.service';
 
 // Mock implementation for testing the abstraction
 class MockOrderingStrategy implements CaseOrderingStrategy {

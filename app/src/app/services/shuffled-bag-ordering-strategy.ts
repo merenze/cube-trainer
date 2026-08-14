@@ -1,5 +1,5 @@
 import { type EligibleObservation } from './eligible-observation.service';
-import { type CaseOrderingStrategy } from './case-ordering-strategy';
+import { type CaseOrderingStrategy } from '../features/candidate-selection/services/case-ordering-strategy';
 
 export class ShuffledBagOrderingStrategy implements CaseOrderingStrategy {
   order(observations: readonly EligibleObservation[]): readonly EligibleObservation[] {

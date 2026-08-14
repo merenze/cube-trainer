@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@angular/core';
 import { EligibleObservationService, type EligibleObservation } from './eligible-observation.service';
-import { CASE_ORDERING_STRATEGY, type CaseOrderingStrategy } from './case-ordering-strategy';
+import { CASE_ORDERING_STRATEGY, type CaseOrderingStrategy } from '../features/candidate-selection/services/case-ordering-strategy';
 import { TrainerConfigurationService } from './trainer-configuration.service';
 
 @Injectable({
