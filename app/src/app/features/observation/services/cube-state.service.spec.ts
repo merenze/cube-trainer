@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { CubeStateService } from './cube-state.service';
-import { TrainerLifecycleService } from '../../../services/trainer-lifecycle.service';
+import { TrainerLifecycleService } from '../../core';
 import { type SideColorLayout } from '../../../domain';
 
 class StubTrainerLifecycleService {
